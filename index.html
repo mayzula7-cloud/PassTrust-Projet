@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PassTrust — Le passeport de confiance</title>
+  <style>
+    :root{
+      --bg:#f7f9fc;
+      --navy:#173b67;
+      --teal:#20b8a6;
+      --ink:#17202a;
+      --muted:#657184;
+      --card:#ffffff;
+      --line:#e4eaf1;
+      --shadow:0 14px 35px rgba(23,59,103,.08);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+    header,main,footer{max-width:1180px;margin:0 auto;padding:0 24px}
+    header{display:flex;align-items:center;justify-content:space-between;padding-top:22px}
+    .logo{font-weight:800;font-size:24px;color:var(--navy);letter-spacing:-.8px}
+    .logo span{color:var(--teal)}
+    nav{display:flex;gap:22px;align-items:center}
+    nav a{color:var(--muted);text-decoration:none;font-size:14px}
+    .btn{border:0;border-radius:12px;padding:13px 18px;font-weight:700;cursor:pointer}
+    .primary{background:var(--navy);color:#fff}
+    .secondary{background:#fff;color:var(--navy);border:1px solid #dfe6ef}
+    .hero{padding:58px 0 74px;display:grid;grid-template-columns:1.05fr .95fr;gap:58px;align-items:center}
+    .eyebrow{color:var(--teal);font-weight:800;text-transform:uppercase;letter-spacing:1.4px;font-size:12px}
+    h1{font-size:clamp(42px,6vw,72px);line-height:1.02;letter-spacing:-3px;margin:18px 0;color:var(--navy)}
+    .lead{font-size:19px;line-height:1.6;color:var(--muted);max-width:570px}
+    .actions{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0}
+    .trustline{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+    .visual{background:#e8f4f3;border-radius:30px;padding:25px;min-height:390px;position:relative;overflow:hidden}
+    .map{height:100%;min-height:340px;border-radius:22px;background:linear-gradient(135deg,#d7ecea,#f4fbfb);position:relative}
+    .road{position:absolute;background:white;border-radius:40px;transform:rotate(-25deg);opacity:.9}
+    .r1{width:130%;height:24px;top:120px;left:-30px}
+    .r2{width:120%;height:18px;top:235px;left:-20px;transform:rotate(23deg)}
+    .card{position:absolute;background:white;padding:18px;border-radius:18px;box-shadow:var(--shadow);width:220px}
+    .profile{top:35px;right:25px}
+    .request{bottom:35px;left:25px}
+    .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#8ce2d6);display:inline-flex;align-items:center;justify-content:center;color:white;font-weight:800;margin-right:10px}
+    .verified{color:#129981;font-size:12px;font-weight:700}
+    .section{background:white;padding:78px 24px}
+    .wrap{max-width:1100px;margin:auto}
+    .section h2{text-align:center;color:var(--navy);font-size:38px;letter-spacing:-1.5px;margin:0 0 12px}
+    .section .intro{text-align:center;color:var(--muted);margin:0 auto 40px;max-width:620px;line-height:1.6}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .tile{border:1px solid var(--line);border-radius:18px;padding:22px;background:#fff}
+    .icon{font-size:27px}
+    .tile h3{font-size:16px;margin:13px 0 7px;color:var(--navy)}
+    .tile p{font-size:13px;color:var(--muted);line-height:1.5;margin:0}
+    .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+    .num{color:var(--teal);font-weight:900;font-size:28px}
+    .step h3{color:var(--navy);margin:8px 0}
+    .step p{color:var(--muted);line-height:1.5;font-size:14px}
+    .cta{max-width:1100px;margin:65px auto;padding:44px;border-radius:24px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:25px}
+    .cta h2{color:#fff;text-align:left;margin:0 0 8px}
+    .cta p{color:#c9d8e8;margin:0}
+    .cta .primary{background:var(--teal)}
+    footer{padding:28px 24px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between}
+    .modal{display:none;position:fixed;inset:0;background:rgba(23,32,42,.6);align-items:center;justify-content:center;padding:20px}
+    .modal-box{background:white;border-radius:20px;max-width:480px;width:100%;padding:28px;position:relative}
+    .modal-box h2{color:var(--navy);margin-top:0}
+    input,textarea{width:100%;padding:13px;margin:6px 0;border:1px solid #dfe6ef;border-radius:10px;font:inherit}
+    textarea{min-height:90px;resize:vertical}
+    .close{position:absolute;right:16px;top:12px;border:0;background:none;font-size:24px;cursor:pointer}
+    @media(max-width:800px){
+      nav a{display:none}
+      .hero{grid-template-columns:1fr;padding-top:25px}
+      .grid,.steps{grid-template-columns:repeat(2,1fr)}
+      .cta{margin:35px 0;display:block}
+      .cta .btn{margin-top:20px}
+      h1{letter-spacing:-2px}
+      footer{display:block}
+      footer span{display:block;margin-top:8px}
+    }
+    @media(max-width:480px){
+      .grid,.steps{grid-template-columns:1fr 1fr}
+      .visual{min-height:320px}
+      .card{transform:scale(.85);transform-origin:center}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Pass<span>Trust</span></div>
+    <nav>
+      <a href="#how">Comment ça marche</a>
+      <a href="#trust">Confiance</a>
+      <button class="btn primary" onclick="openForm('help')">Commencer</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Le passeport de confiance</div>
+        <h1>Un besoin.<br>Une personne fiable.</h1>
+        <p class="lead">PassTrust vous aide à trouver quelqu’un de confiance pour résoudre les besoins du quotidien — près de chez vous.</p>
+        <div class="actions">
+          <button class="btn primary" onclick="openForm('help')">J’ai besoin d’aide</button>
+          <button class="btn secondary" onclick="openForm('offer')">Je peux aider</button>
+        </div>
+        <div class="trustline">
+          <span>✓ Profils vérifiés</span>
+          <span>✓ Paiement protégé</span>
+          <span>✓ Avis réels</span>
+        </div>
+      </div>
+
+      <div class="visual">
+        <div class="map">
+          <div class="road r1"></div>
+          <div class="road r2"></div>
+          <div class="card profile">
+            <div><span class="avatar">M</span><strong>Marie, 28</strong></div>
+            <div class="verified">✓ Identité vérifiée</div>
+            <small>Montage · 4,9 ★</small>
+          </div>
+          <div class="card request">
+            <strong>Besoin d’aide</strong>
+            <p style="font-size:13px;color:#657184;margin:8px 0">Monter une étagère samedi</p>
+            <div class="verified">3 personnes disponibles</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="section" id="trust">
+    <div class="wrap">
+      <h2>La confiance se construit avec des preuves</h2>
+      <p class="intro">Chaque profil évolue grâce aux services réellement réalisés, aux avis vérifiés et aux comportements fiables.</p>
+      <div class="grid">
+        <div class="tile"><div class="icon">🪪</div><h3>Identité vérifiée</h3><p>Des niveaux de vérification clairs avant les transactions.</p></div>
+        <div class="tile"><div class="icon">⭐</div><h3>Avis réels</h3><p>Les évaluations sont liées à des services réalisés.</p></div>
+        <div class="tile"><div class="icon">🛡️</div><h3>Paiement protégé</h3><p>Les règles de paiement et de litige sont visibles.</p></div>
+        <div class="tile"><div class="icon">🤝</div><h3>Communauté</h3><p>Demandez de l’aide ou construisez votre réputation.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="wrap">
+      <h2>Une demande. Des personnes fiables.</h2>
+      <p class="intro">Un parcours simple pour trouver ou proposer de l’aide.</p>
+      <div class="steps">
+        <div class="step"><div class="num">01</div><h3>Décrivez</h3><p>Expliquez votre besoin, votre zone et votre délai.</p></div>
+        <div class="step"><div class="num">02</div><h3>Comparez</h3><p>Recevez des réponses et consultez les profils.</p></div>
+        <div class="step"><div class="num">03</div><h3>Choisissez</h3><p>Réservez une personne selon le prix et la confiance.</p></div>
+        <div class="step"><div class="num">04</div><h3>Évaluez</h3><p>Le service terminé, chacun renforce sa réputation.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div>
+      <h2>Votre première action construit la confiance.</h2>
+      <p>Rejoignez les premiers membres de PassTrust à Maisons-Laffitte.</p>
+    </div>
+    <button class="btn primary" onclick="openForm('help')">Rejoindre PassTrust</button>
+  </section>
+
+  <footer>
+    <strong>PassTrust</strong>
+    <span>Prototype — Maisons-Laffitte · 2026</span>
+  </footer>
+
+  <div id="modal" class="modal">
+    <div class="modal-box">
+      <button class="close" onclick="closeForm()">×</button>
+      <h2 id="formTitle">Commencer</h2>
+      <p style="color:#657184">Laissez vos coordonnées : nous vous contacterons pour les premiers tests locaux.</p>
+
+      <form id="lead-form">
+        <input type="hidden" name="mode" id="mode" value="help" />
+        <input required name="name" placeholder="Votre prénom" />
+        <input required type="email" name="email" placeholder="Votre email" />
+        <input name="city" placeholder="Votre ville" value="Maisons-Laffitte" />
+        <textarea required name="need" placeholder="Votre besoin ou service (facultatif pour aider)"></textarea>
+        <button class="btn primary" style="width:100%">Envoyer</button>
+      </form>
+
+      <p id="form-status" style="color:#129981;font-weight:700;margin-top:15px"></p>
+    </div>
+  </div>
+
+  <script type="module" src="./supabase-client.js"></script>
+  <script>
+    function openForm(mode){
+      document.getElementById('mode').value = mode;
+      document.getElementById('formTitle').textContent = mode === 'help' ? 'J’ai besoin d’aide' : 'Je peux aider';
+      document.getElementById('modal').style.display = 'flex';
+    }
+    function closeForm(){ document.getElementById('modal').style.display = 'none'; }
+    window.onclick = e => { if(e.target.id === 'modal') closeForm(); };
+  </script>
+</body>
+</html>

@@ -5,16 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PassTrust — Le passeport de confiance</title>
   <style>
-    :root{
-      --bg:#f7f9fc;
-      --navy:#173b67;
-      --teal:#20b8a6;
-      --ink:#17202a;
-      --muted:#657184;
-      --card:#ffffff;
-      --line:#e4eaf1;
-      --shadow:0 14px 35px rgba(23,59,103,.08);
-    }
+    :root{--bg:#f7f9fc;--navy:#173b67;--teal:#20b8a6;--ink:#17202a;--muted:#657184;--card:#fff;--line:#e4eaf1;--shadow:0 14px 35px rgba(23,59,103,.08)}
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
     header,main,footer{max-width:1180px;margin:0 auto;padding:0 24px}
@@ -66,21 +57,8 @@
     input,textarea{width:100%;padding:13px;margin:6px 0;border:1px solid #dfe6ef;border-radius:10px;font:inherit}
     textarea{min-height:90px;resize:vertical}
     .close{position:absolute;right:16px;top:12px;border:0;background:none;font-size:24px;cursor:pointer}
-    @media(max-width:800px){
-      nav a{display:none}
-      .hero{grid-template-columns:1fr;padding-top:25px}
-      .grid,.steps{grid-template-columns:repeat(2,1fr)}
-      .cta{margin:35px 0;display:block}
-      .cta .btn{margin-top:20px}
-      h1{letter-spacing:-2px}
-      footer{display:block}
-      footer span{display:block;margin-top:8px}
-    }
-    @media(max-width:480px){
-      .grid,.steps{grid-template-columns:1fr 1fr}
-      .visual{min-height:320px}
-      .card{transform:scale(.85);transform-origin:center}
-    }
+    @media(max-width:800px){nav a{display:none}.hero{grid-template-columns:1fr;padding-top:25px}.grid,.steps{grid-template-columns:repeat(2,1fr)}.cta{margin:35px 0;display:block}.cta .btn{margin-top:20px}h1{letter-spacing:-2px}footer{display:block}footer span{display:block;margin-top:8px}}
+    @media(max-width:480px){.grid,.steps{grid-template-columns:1fr 1fr}.visual{min-height:320px}.card{transform:scale(.85);transform-origin:center}}
   </style>
 </head>
 <body>

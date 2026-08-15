@@ -194,34 +194,29 @@ function isValidEmail(email) {
 
 /* ---------- Envoi du lien de connexion ---------- */
 
-async function sendLoginLink(email) {
+async function loginAdmin(email, password) {
   const cleanEmail = email.trim();
 
   if (!cleanEmail) {
-    throw new Error("Veuillez saisir une adresse email.");
+    throw new Error("Veuillez saisir votre adresse email.");
   }
 
-  if (!isValidEmail(cleanEmail)) {
-    throw new Error("Veuillez saisir une adresse email valide.");
+  if (!password) {
+    throw new Error("Veuillez saisir votre mot de passe.");
   }
 
-  /*
-    Le lien reçu par email redirigera vers cette page.
-    Cette adresse doit être autorisée dans Supabase :
-    Authentication > Configuration de l'URL
-  */
-
-  const { error } =
-    await supabaseClient.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo: ADMIN_URL
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email: cleanEmail,
+      password
     });
 
   if (error) {
     throw error;
   }
-}
 
-/* ---------- Connexion avec le lien de récupération ---------- */
+  return data;
+}
 
 async function handleRecoverySession() {
   const {

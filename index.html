@@ -920,22 +920,22 @@
                 formData.get("mode") || "help"
               ).trim(),
 
-            nom:
+            name:
               String(
                 formData.get("name") || ""
               ).trim(),
 
-            courriel:
+            email:
               String(
                 formData.get("email") || ""
               ).trim(),
 
-            besoin:
+            need:
               String(
                 formData.get("need") || ""
               ).trim(),
 
-            ville:
+            city:
               String(
                 formData.get("city") ||
                   "Non précisée"
@@ -951,9 +951,9 @@
           };
 
           if (
-            !payload.nom ||
-            !payload.courriel ||
-            !payload.besoin
+            !payload.name ||
+            !payload.email ||
+            !payload.need
           ) {
             formStatus.textContent =
               "Merci de remplir les champs obligatoires.";

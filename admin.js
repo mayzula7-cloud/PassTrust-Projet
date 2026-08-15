@@ -24,10 +24,11 @@ if (
   );
 }
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
 /* ---------- Éléments HTML ---------- */
@@ -69,37 +70,11 @@ const leadCount =
   document.querySelector("#lead-count");
 
 
-/* ---------- Vérification du formulaire ---------- */
-
-if (!loginForm) {
-  console.error(
-    "Le formulaire #login-form est introuvable."
-  );
-}
-
-if (!emailInput) {
-  console.error(
-    "Le champ #current-email est introuvable."
-  );
-}
-
-if (!passwordInput) {
-  console.error(
-    "Le champ #admin-password est introuvable."
-  );
-}
-
-
 /* ---------- Affichage ---------- */
 
 function showLogin() {
-  if (authPanel) {
-    authPanel.classList.remove("hidden");
-  }
-
-  if (dashboardPanel) {
-    dashboardPanel.classList.add("hidden");
-  }
+  authPanel?.classList.remove("hidden");
+  dashboardPanel?.classList.add("hidden");
 
   if (currentEmailDisplay) {
     currentEmailDisplay.textContent = "";
@@ -116,16 +91,12 @@ function showLogin() {
 
 
 function showDashboard(email) {
-  if (authPanel) {
-    authPanel.classList.add("hidden");
-  }
-
-  if (dashboardPanel) {
-    dashboardPanel.classList.remove("hidden");
-  }
+  authPanel?.classList.add("hidden");
+  dashboardPanel?.classList.remove("hidden");
 
   if (currentEmailDisplay) {
-    currentEmailDisplay.textContent = email || "";
+    currentEmailDisplay.textContent =
+      email || "";
   }
 }
 
@@ -174,68 +145,42 @@ function readableError(error) {
     message.toLowerCase();
 
   if (
-    lowerMessage.includes("invalid login credentials")
+    lowerMessage.includes(
+      "invalid login credentials"
+    )
   ) {
-    return (
-      "Email ou mot de passe incorrect."
-    );
+    return "Email ou mot de passe incorrect.";
   }
 
   if (
-    lowerMessage.includes("email not confirmed")
+    lowerMessage.includes(
+      "email not confirmed"
+    )
   ) {
-    return (
-      "Ton adresse email n'est pas confirmée."
-    );
+    return "Ton adresse email n'est pas confirmée.";
   }
 
   if (
     lowerMessage.includes("invalid api key") ||
     lowerMessage.includes("apikey")
   ) {
-    return (
-      "Clé Supabase invalide. Vérifie SUPABASE_KEY."
-    );
-  }
-
-  if (
-    lowerMessage.includes("invalid path") ||
-    lowerMessage.includes(
-      "invalid path specified"
-    )
-  ) {
-    return (
-      "URL Supabase invalide. Elle doit se terminer " +
-      "uniquement par .supabase.co."
-    );
+    return "Clé Supabase invalide.";
   }
 
   if (
     lowerMessage.includes("failed to fetch") ||
     lowerMessage.includes("network")
   ) {
-    return (
-      "Connexion impossible à Supabase. " +
-      "Vérifie ta connexion Internet."
-    );
+    return "Connexion impossible à Supabase.";
   }
 
   if (
     lowerMessage.includes("permission denied") ||
-    lowerMessage.includes("row-level security")
+    lowerMessage.includes(
+      "row-level security"
+    )
   ) {
-    return (
-      "Accès refusé par les règles RLS de Supabase."
-    );
-  }
-
-  if (
-    lowerMessage.includes("too many requests") ||
-    lowerMessage.includes("rate limit")
-  ) {
-    return (
-      "Trop de tentatives. Attends quelques minutes."
-    );
+    return "Accès refusé par les règles RLS.";
   }
 
   return message;
@@ -264,16 +209,17 @@ async function loginAdmin(email, password) {
     data,
     error
   } =
-    await supabaseClient.auth.signInWithPassword({
-      email: cleanEmail,
-      password
-    });
+    await supabaseClient.auth
+      .signInWithPassword({
+        email: cleanEmail,
+        password
+      });
 
   if (error) {
     throw error;
   }
 
-  if (!data || !data.user) {
+  if (!data?.user) {
     throw new Error(
       "Aucun utilisateur connecté."
     );
@@ -283,7 +229,7 @@ async function loginAdmin(email, password) {
 }
 
 
-/* ---------- Écouteur du formulaire ---------- */
+/* ---------- Formulaire de connexion ---------- */
 
 if (loginForm) {
   loginForm.addEventListener(
@@ -294,30 +240,10 @@ if (loginForm) {
       clearMessage(loginMessage);
 
       const email =
-        emailInput
-          ? emailInput.value.trim()
-          : "";
+        emailInput?.value.trim() || "";
 
       const password =
-        passwordInput
-          ? passwordInput.value
-          : "";
-
-      if (!email) {
-        showError(
-          loginMessage,
-          "Veuillez saisir votre adresse email."
-        );
-        return;
-      }
-
-      if (!password) {
-        showError(
-          loginMessage,
-          "Veuillez saisir votre mot de passe."
-        );
-        return;
-      }
+        passwordInput?.value || "";
 
       const submitButton =
         loginForm.querySelector(
@@ -376,23 +302,23 @@ async function checkSession() {
     data,
     error
   } =
-    await supabaseClient.auth.getSession();
+    await supabaseClient.auth
+      .getSession();
 
   if (error) {
     console.error(
       "Erreur de session :",
       error
     );
+
     showLogin();
     return;
   }
 
   const session =
-    data
-      ? data.session
-      : null;
+    data?.session || null;
 
-  if (session && session.user) {
+  if (session?.user) {
     showDashboard(
       session.user.email
     );
@@ -407,17 +333,18 @@ async function checkSession() {
 /* ---------- Écoute des changements ---------- */
 
 supabaseClient.auth.onAuthStateChange(
-  async (event, session) => {
+  (event, session) => {
     if (
       event === "SIGNED_IN" &&
-      session &&
-      session.user
+      session?.user
     ) {
       showDashboard(
         session.user.email
       );
 
-      await loadLeads();
+      setTimeout(() => {
+        loadLeads();
+      }, 0);
     }
 
     if (
@@ -442,7 +369,8 @@ if (logoutButton) {
       const {
         error
       } =
-        await supabaseClient.auth.signOut();
+        await supabaseClient.auth
+          .signOut();
 
       if (error) {
         showError(
@@ -479,10 +407,10 @@ async function loadLeads() {
     error
   } =
     await supabaseClient
-      .from("leads")
+      .from("conduit")
       .select("*")
       .order(
-        "created_at",
+        "créé_at",
         {
           ascending: false
         }
@@ -538,47 +466,58 @@ function renderLeads(leads) {
   leadsList.innerHTML =
     leads
       .map((lead) => {
+        const mode =
+          escapeHtml(
+            lead.mode ||
+            "Demande"
+          );
+
         const name =
           escapeHtml(
-            lead.name ||
-            lead.full_name ||
             lead.nom ||
-            "Utilisateur sans nom"
+            "Nom non renseigné"
           );
 
         const email =
           escapeHtml(
-            lead.email ||
-            lead.user_email ||
+            lead.courriel ||
             "Email non renseigné"
           );
 
-        const message =
+        const need =
           escapeHtml(
-            lead.message ||
-            lead.description ||
-            lead.details ||
-            "Aucun détail"
+            lead.besoin ||
+            "Besoin non renseigné"
+          );
+
+        const city =
+          escapeHtml(
+            lead.ville ||
+            "Ville non renseignée"
           );
 
         const status =
           escapeHtml(
-            lead.status ||
             lead.statut ||
             "Nouvelle"
           );
 
+        const notes =
+          escapeHtml(
+            lead.notes ||
+            "Aucune note"
+          );
+
         const date =
           formatDate(
-            lead.created_at ||
-            lead.createdAt ||
-            lead.date_creation
+            lead["créé_at"]
           );
 
         return `
           <article class="lead-card">
             <div class="lead-header">
               <h3>${name}</h3>
+
               <span class="lead-status">
                 ${status}
               </span>
@@ -588,8 +527,23 @@ function renderLeads(leads) {
               ${email}
             </p>
 
+            <p>
+              <strong>Mode :</strong>
+              ${mode}
+            </p>
+
+            <p>
+              <strong>Besoin :</strong>
+              ${need}
+            </p>
+
+            <p>
+              <strong>Ville :</strong>
+              ${city}
+            </p>
+
             <p class="lead-message">
-              ${message}
+              ${notes}
             </p>
 
             <small class="lead-date">

@@ -69,6 +69,27 @@ const leadsList =
 const leadCount =
   document.querySelector("#lead-count");
 
+const statTotal =
+  document.querySelector("#stat-total");
+
+const statNew =
+  document.querySelector("#stat-new");
+
+const statProgress =
+  document.querySelector("#stat-progress");
+
+const statDone =
+  document.querySelector("#stat-done");
+
+const leadSearch =
+  document.querySelector("#lead-search");
+
+const statusFilter =
+  document.querySelector("#status-filter");
+
+const resetFilters =
+  document.querySelector("#reset-filters");
+
 
 /* ---------- Constantes ---------- */
 
@@ -79,48 +100,89 @@ const STATUS_VALUES = [
 ];
 
 
-/* ---------- Interface ---------- */
+/* ---------- État ---------- */
+
+let allLeads = [];
+
+
+/* ---------- Affichage général ---------- */
 
 function showLogin() {
-  authPanel.classList.remove("hidden");
-  dashboardPanel.classList.add("hidden");
-  currentEmailDisplay.textContent = "";
-  leadCount.textContent = "0";
+  if (authPanel) {
+    authPanel.classList.remove("hidden");
+  }
 
-  leadsList.innerHTML = `
-    <p class="loading">
-      Connexion nécessaire pour afficher les demandes.
-    </p>
-  `;
+  if (dashboardPanel) {
+    dashboardPanel.classList.add("hidden");
+  }
+
+  if (currentEmailDisplay) {
+    currentEmailDisplay.textContent = "";
+  }
+
+  if (leadCount) {
+    leadCount.textContent = "0";
+  }
+
+  updateStats([]);
+
+  if (leadsList) {
+    leadsList.innerHTML = `
+      <p class="loading">
+        Connexion nécessaire pour afficher les demandes.
+      </p>
+    `;
+  }
 }
 
 
 function showDashboard(email) {
-  authPanel.classList.add("hidden");
-  dashboardPanel.classList.remove("hidden");
-  currentEmailDisplay.textContent = email || "";
+  if (authPanel) {
+    authPanel.classList.add("hidden");
+  }
+
+  if (dashboardPanel) {
+    dashboardPanel.classList.remove("hidden");
+  }
+
+  if (currentEmailDisplay) {
+    currentEmailDisplay.textContent =
+      email || "";
+  }
 }
 
 
 function clearMessage(element) {
+  if (!element) {
+    return;
+  }
+
   element.textContent = "";
   element.className = "message";
 }
 
 
 function showError(element, message) {
+  if (!element) {
+    return;
+  }
+
   element.textContent = message;
   element.className = "message error";
 }
 
 
 function showSuccess(element, message) {
+  if (!element) {
+    return;
+  }
+
   element.textContent = message;
   element.className = "message success";
 }
 
 
-/* ---------- Erreurs ---------- */
+/* ---------- Gestion des erreurs ---------- */
 
 function readableError(error) {
   if (!error) {
@@ -130,11 +192,11 @@ function readableError(error) {
   const message =
     String(error.message || error);
 
-  const lower =
+  const lowerMessage =
     message.toLowerCase();
 
   if (
-    lower.includes(
+    lowerMessage.includes(
       "invalid login credentials"
     )
   ) {
@@ -142,7 +204,7 @@ function readableError(error) {
   }
 
   if (
-    lower.includes(
+    lowerMessage.includes(
       "email not confirmed"
     )
   ) {
@@ -150,30 +212,41 @@ function readableError(error) {
   }
 
   if (
-    lower.includes("invalid api key") ||
-    lower.includes("apikey")
+    lowerMessage.includes("invalid api key") ||
+    lowerMessage.includes("apikey")
   ) {
     return "Clé Supabase invalide.";
   }
 
   if (
-    lower.includes("failed to fetch") ||
-    lower.includes("network")
+    lowerMessage.includes("failed to fetch") ||
+    lowerMessage.includes("network")
   ) {
     return "Connexion impossible à Supabase.";
   }
 
   if (
-    lower.includes("permission denied") ||
-    lower.includes("row-level security")
+    lowerMessage.includes("permission denied") ||
+    lowerMessage.includes("row-level security") ||
+    lowerMessage.includes(
+      "violates row-level security"
+    )
   ) {
     return "Accès refusé par les règles RLS.";
   }
 
   if (
-    lower.includes("does not exist")
+    lowerMessage.includes("relation") &&
+    lowerMessage.includes("does not exist")
   ) {
-    return "Table ou colonne introuvable.";
+    return "La table conduit est introuvable.";
+  }
+
+  if (
+    lowerMessage.includes("column") &&
+    lowerMessage.includes("does not exist")
+  ) {
+    return "Une colonne utilisée est introuvable.";
   }
 
   return message;
@@ -187,7 +260,19 @@ async function loginAdmin(
   password
 ) {
   const cleanEmail =
-    email.trim();
+    String(email || "").trim();
+
+  if (!cleanEmail) {
+    throw new Error(
+      "Veuillez saisir votre adresse email."
+    );
+  }
+
+  if (!password) {
+    throw new Error(
+      "Veuillez saisir votre mot de passe."
+    );
+  }
 
   const {
     data,
@@ -213,81 +298,98 @@ async function loginAdmin(
 }
 
 
-loginForm.addEventListener(
-  "submit",
-  async (event) => {
-    event.preventDefault();
+if (loginForm) {
+  loginForm.addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
 
-    clearMessage(
-      loginMessage
-    );
-
-    const email =
-      emailInput.value.trim();
-
-    const password =
-      passwordInput.value;
-
-    if (!email) {
-      showError(
-        loginMessage,
-        "Veuillez saisir votre adresse email."
+      clearMessage(
+        loginMessage
       );
 
-      return;
-    }
+      const email =
+        emailInput
+          ? emailInput.value.trim()
+          : "";
 
-    if (!password) {
-      showError(
-        loginMessage,
-        "Veuillez saisir votre mot de passe."
-      );
+      const password =
+        passwordInput
+          ? passwordInput.value
+          : "";
 
-      return;
-    }
-
-    const submitButton =
-      loginForm.querySelector(
-        'button[type="submit"]'
-      );
-
-    submitButton.disabled = true;
-
-    showSuccess(
-      loginMessage,
-      "Connexion en cours..."
-    );
-
-    try {
-      const result =
-        await loginAdmin(
-          email,
-          password
+      if (!email) {
+        showError(
+          loginMessage,
+          "Veuillez saisir votre adresse email."
         );
 
-      showDashboard(
-        result.user.email
-      );
+        return;
+      }
 
-      await loadLeads();
+      if (!password) {
+        showError(
+          loginMessage,
+          "Veuillez saisir votre mot de passe."
+        );
 
-      passwordInput.value = "";
-      clearMessage(loginMessage);
-    } catch (error) {
-      console.error(
-        "Erreur de connexion :",
-        error
-      );
+        return;
+      }
 
-      showError(
+      const submitButton =
+        loginForm.querySelector(
+          'button[type="submit"]'
+        );
+
+      if (submitButton) {
+        submitButton.disabled =
+          true;
+      }
+
+      showSuccess(
         loginMessage,
-        readableError(error)
+        "Connexion en cours..."
       );
-    } finally {
-      submitButton.disabled = false;
+
+      try {
+        const result =
+          await loginAdmin(
+            email,
+            password
+          );
+
+        showDashboard(
+          result.user.email
+        );
+
+        await loadLeads();
+
+        if (passwordInput) {
+          passwordInput.value = "";
+        }
+
+        clearMessage(
+          loginMessage
+        );
+      } catch (error) {
+        console.error(
+          "Erreur de connexion :",
+          error
+        );
+
+        showError(
+          loginMessage,
+          readableError(error)
+        );
+      } finally {
+        if (submitButton) {
+          submitButton.disabled =
+            false;
+        }
+      }
     }
-  }
-);
+  );
+}
 
 
 /* ---------- Session ---------- */
@@ -301,6 +403,11 @@ async function checkSession() {
       .getSession();
 
   if (error) {
+    console.error(
+      "Erreur de session :",
+      error
+    );
+
     showLogin();
 
     showError(
@@ -311,9 +418,12 @@ async function checkSession() {
     return;
   }
 
-  if (data?.session?.user) {
+  const session =
+    data?.session || null;
+
+  if (session?.user) {
     showDashboard(
-      data.session.user.email
+      session.user.email
     );
 
     await loadLeads();
@@ -333,7 +443,12 @@ supabaseClient.auth.onAuthStateChange(
         session.user.email
       );
 
-      loadLeads();
+      setTimeout(
+        () => {
+          loadLeads();
+        },
+        0
+      );
     }
 
     if (
@@ -347,36 +462,48 @@ supabaseClient.auth.onAuthStateChange(
 
 /* ---------- Déconnexion ---------- */
 
-logoutButton.addEventListener(
-  "click",
-  async () => {
-    logoutButton.disabled = true;
-
-    const {
-      error
-    } =
-      await supabaseClient.auth
-        .signOut();
-
-    logoutButton.disabled = false;
-
-    if (error) {
-      showError(
-        dashboardMessage,
-        readableError(error)
+if (logoutButton) {
+  logoutButton.addEventListener(
+    "click",
+    async () => {
+      clearMessage(
+        dashboardMessage
       );
 
-      return;
+      logoutButton.disabled =
+        true;
+
+      const {
+        error
+      } =
+        await supabaseClient.auth
+          .signOut();
+
+      logoutButton.disabled =
+        false;
+
+      if (error) {
+        showError(
+          dashboardMessage,
+          readableError(error)
+        );
+
+        return;
+      }
+
+      showLogin();
     }
-
-    showLogin();
-  }
-);
+  );
+}
 
 
-/* ---------- Chargement ---------- */
+/* ---------- Chargement des demandes ---------- */
 
 async function loadLeads() {
+  if (!leadsList) {
+    return;
+  }
+
   leadsList.innerHTML = `
     <p class="loading">
       Chargement des demandes...
@@ -402,7 +529,8 @@ async function loadLeads() {
         ville,
         statut,
         notes,
-        créé_at
+        créé_at,
+        modifié_at
       `)
       .order(
         "créé_at",
@@ -412,36 +540,184 @@ async function loadLeads() {
       );
 
   if (error) {
+    console.error(
+      "Erreur de chargement :",
+      error
+    );
+
     leadsList.innerHTML = "";
 
     showError(
       dashboardMessage,
-      readableError(error)
+      "Impossible de charger les demandes : " +
+        readableError(error)
     );
 
-    leadCount.textContent = "0";
+    allLeads = [];
+    updateStats([]);
 
     return;
   }
 
-  renderLeads(
+  allLeads =
     Array.isArray(data)
       ? data
-      : []
+      : [];
+
+  updateStats(
+    allLeads
+  );
+
+  applyLeadFilters();
+}
+
+
+/* ---------- Statistiques ---------- */
+
+function updateStats(leads) {
+  const total =
+    leads.length;
+
+  const newCount =
+    leads.filter(
+      (lead) =>
+        lead.statut === "Nouvelle"
+    ).length;
+
+  const progressCount =
+    leads.filter(
+      (lead) =>
+        lead.statut === "En cours"
+    ).length;
+
+  const doneCount =
+    leads.filter(
+      (lead) =>
+        lead.statut === "Terminée"
+    ).length;
+
+  if (statTotal) {
+    statTotal.textContent =
+      String(total);
+  }
+
+  if (statNew) {
+    statNew.textContent =
+      String(newCount);
+  }
+
+  if (statProgress) {
+    statProgress.textContent =
+      String(progressCount);
+  }
+
+  if (statDone) {
+    statDone.textContent =
+      String(doneCount);
+  }
+
+  if (leadCount) {
+    leadCount.textContent =
+      String(total);
+  }
+}
+
+
+/* ---------- Recherche et filtres ---------- */
+
+function applyLeadFilters() {
+  const search =
+    leadSearch
+      ? leadSearch.value
+        .trim()
+        .toLowerCase()
+      : "";
+
+  const selectedStatus =
+    statusFilter
+      ? statusFilter.value
+      : "";
+
+  const filteredLeads =
+    allLeads.filter(
+      (lead) => {
+        const name =
+          String(
+            lead.nom || ""
+          ).toLowerCase();
+
+        const email =
+          String(
+            lead.courriel || ""
+          ).toLowerCase();
+
+        const matchesSearch =
+          !search ||
+          name.includes(search) ||
+          email.includes(search);
+
+        const matchesStatus =
+          !selectedStatus ||
+          lead.statut === selectedStatus;
+
+        return (
+          matchesSearch &&
+          matchesStatus
+        );
+      }
+    );
+
+  renderLeads(
+    filteredLeads
   );
 }
 
 
-/* ---------- Affichage ---------- */
+if (leadSearch) {
+  leadSearch.addEventListener(
+    "input",
+    applyLeadFilters
+  );
+}
+
+
+if (statusFilter) {
+  statusFilter.addEventListener(
+    "change",
+    applyLeadFilters
+  );
+}
+
+
+if (resetFilters) {
+  resetFilters.addEventListener(
+    "click",
+    () => {
+      if (leadSearch) {
+        leadSearch.value = "";
+      }
+
+      if (statusFilter) {
+        statusFilter.value = "";
+      }
+
+      applyLeadFilters();
+    }
+  );
+}
+
+
+/* ---------- Affichage des demandes ---------- */
 
 function renderLeads(leads) {
-  leadCount.textContent =
-    String(leads.length);
+  if (!leadsList) {
+    return;
+  }
 
   if (leads.length === 0) {
     leadsList.innerHTML = `
       <p class="empty">
-        Aucune demande pour le moment.
+        Aucune demande ne correspond aux filtres.
       </p>
     `;
 
@@ -457,6 +733,36 @@ function renderLeads(leads) {
               lead.identifiant || ""
             );
 
+          const mode =
+            escapeHtml(
+              lead.mode ||
+                "Demande"
+            );
+
+          const name =
+            escapeHtml(
+              lead.nom ||
+                "Nom non renseigné"
+            );
+
+          const email =
+            escapeHtml(
+              lead.courriel ||
+                "Email non renseigné"
+            );
+
+          const need =
+            escapeHtml(
+              lead.besoin ||
+                "Aucun besoin renseigné"
+            );
+
+          const city =
+            escapeHtml(
+              lead.ville ||
+                "Ville non renseignée"
+            );
+
           const status =
             STATUS_VALUES.includes(
               lead.statut
@@ -464,18 +770,44 @@ function renderLeads(leads) {
               ? lead.statut
               : "Nouvelle";
 
+          const notes =
+            escapeHtml(
+              lead.notes ||
+                "Aucune note"
+            );
+
+          const createdAt =
+            formatDate(
+              lead["créé_at"]
+            );
+
+          const updatedAt =
+            formatDate(
+              lead["modifié_at"]
+            );
+
+          const selectedNew =
+            status === "Nouvelle"
+              ? "selected"
+              : "";
+
+          const selectedProgress =
+            status === "En cours"
+              ? "selected"
+              : "";
+
+          const selectedDone =
+            status === "Terminée"
+              ? "selected"
+              : "";
+
           return `
             <article
               class="lead-card"
               data-lead-id="${id}"
             >
               <div class="lead-header">
-                <h3>
-                  ${escapeHtml(
-                    lead.nom ||
-                      "Nom non renseigné"
-                  )}
-                </h3>
+                <h3>${name}</h3>
 
                 <span class="lead-status">
                   ${escapeHtml(status)}
@@ -483,42 +815,27 @@ function renderLeads(leads) {
               </div>
 
               <p class="lead-email">
-                ${escapeHtml(
-                  lead.courriel ||
-                    "Email non renseigné"
-                )}
+                ${email}
               </p>
 
               <p class="lead-info">
                 <strong>Mode :</strong>
-                ${escapeHtml(
-                  lead.mode ||
-                    "Demande"
-                )}
+                ${mode}
               </p>
 
               <p class="lead-info">
                 <strong>Besoin :</strong>
-                ${escapeHtml(
-                  lead.besoin ||
-                    "Non renseigné"
-                )}
+                ${need}
               </p>
 
               <p class="lead-info">
                 <strong>Ville :</strong>
-                ${escapeHtml(
-                  lead.ville ||
-                    "Non renseignée"
-                )}
+                ${city}
               </p>
 
               <p class="lead-message">
                 <strong>Notes :</strong>
-                ${escapeHtml(
-                  lead.notes ||
-                    "Aucune note"
-                )}
+                ${notes}
               </p>
 
               <div class="lead-controls">
@@ -535,33 +852,21 @@ function renderLeads(leads) {
                 >
                   <option
                     value="Nouvelle"
-                    ${
-                      status === "Nouvelle"
-                        ? "selected"
-                        : ""
-                    }
+                    ${selectedNew}
                   >
                     Nouvelle
                   </option>
 
                   <option
                     value="En cours"
-                    ${
-                      status === "En cours"
-                        ? "selected"
-                        : ""
-                    }
+                    ${selectedProgress}
                   >
                     En cours
                   </option>
 
                   <option
                     value="Terminée"
-                    ${
-                      status === "Terminée"
-                        ? "selected"
-                        : ""
-                    }
+                    ${selectedDone}
                   >
                     Terminée
                   </option>
@@ -578,9 +883,13 @@ function renderLeads(leads) {
               </div>
 
               <small class="lead-date">
-                ${formatDate(
-                  lead["créé_at"]
-                )}
+                Créée :
+                ${createdAt}
+              </small>
+
+              <small class="lead-updated">
+                Modifiée :
+                ${updatedAt}
               </small>
             </article>
           `;
@@ -590,16 +899,25 @@ function renderLeads(leads) {
 }
 
 
-/* ---------- Modification statut ---------- */
+/* ---------- Modification du statut ---------- */
 
 async function updateLeadStatus(
   id,
   status
 ) {
+  if (!id) {
+    showError(
+      dashboardMessage,
+      "Identifiant de demande introuvable."
+    );
+
+    return false;
+  }
+
   if (!STATUS_VALUES.includes(status)) {
     showError(
       dashboardMessage,
-      "Statut invalide."
+      "Statut sélectionné invalide."
     );
 
     return false;
@@ -619,9 +937,15 @@ async function updateLeadStatus(
       );
 
   if (error) {
+    console.error(
+      "Erreur de modification du statut :",
+      error
+    );
+
     showError(
       dashboardMessage,
-      readableError(error)
+      "Impossible de modifier le statut : " +
+        readableError(error)
     );
 
     return false;
@@ -636,68 +960,136 @@ async function updateLeadStatus(
 }
 
 
-leadsList.addEventListener(
-  "click",
-  async (event) => {
-    const button =
-      event.target.closest(
-        '[data-action="update-status"]'
-      );
+/* ---------- Gestion des boutons ---------- */
 
-    if (!button) {
-      return;
+if (leadsList) {
+  leadsList.addEventListener(
+    "click",
+    async (event) => {
+      const button =
+        event.target.closest(
+          '[data-action="update-status"]'
+        );
+
+      if (!button) {
+        return;
+      }
+
+      const id =
+        button.dataset.leadId;
+
+      const card =
+        button.closest(
+          ".lead-card"
+        );
+
+      if (!card) {
+        showError(
+          dashboardMessage,
+          "Carte de demande introuvable."
+        );
+
+        return;
+      }
+
+      const select =
+        card.querySelector(
+          ".status-select"
+        );
+
+      if (!select) {
+        showError(
+          dashboardMessage,
+          "Sélecteur de statut introuvable."
+        );
+
+        return;
+      }
+
+      const originalText =
+        button.textContent;
+
+      button.disabled =
+        true;
+
+      button.textContent =
+        "Enregistrement...";
+
+      const success =
+        await updateLeadStatus(
+          id,
+          select.value
+        );
+
+      if (success) {
+        await loadLeads();
+      } else {
+        button.disabled =
+          false;
+
+        button.textContent =
+          originalText;
+      }
     }
-
-    const card =
-      button.closest(
-        ".lead-card"
-      );
-
-    const select =
-      card.querySelector(
-        ".status-select"
-      );
-
-    button.disabled = true;
-
-    const success =
-      await updateLeadStatus(
-        button.dataset.leadId,
-        select.value
-      );
-
-    if (success) {
-      await loadLeads();
-    }
-
-    button.disabled = false;
-  }
-);
+  );
+}
 
 
 /* ---------- Actualisation manuelle ---------- */
 
-refreshButton.addEventListener(
-  "click",
-  async () => {
-    refreshButton.disabled = true;
-    await loadLeads();
-    refreshButton.disabled = false;
-  }
-);
+if (refreshButton) {
+  refreshButton.addEventListener(
+    "click",
+    async () => {
+      const originalText =
+        refreshButton.textContent;
+
+      refreshButton.disabled =
+        true;
+
+      refreshButton.textContent =
+        "Actualisation...";
+
+      await loadLeads();
+
+      refreshButton.disabled =
+        false;
+
+      refreshButton.textContent =
+        originalText;
+    }
+  );
+}
 
 
-/* ---------- Utilitaires ---------- */
+/* ---------- Protection HTML ---------- */
 
 function escapeHtml(value) {
   return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
 
+
+/* ---------- Formatage des dates ---------- */
 
 function formatDate(value) {
   if (!value) {
@@ -727,4 +1119,19 @@ function formatDate(value) {
 
 /* ---------- Démarrage ---------- */
 
-checkSession();
+checkSession()
+  .catch(
+    (error) => {
+      console.error(
+        "Erreur de démarrage :",
+        error
+      );
+
+      showLogin();
+
+      showError(
+        loginMessage,
+        readableError(error)
+      );
+    }
+  );

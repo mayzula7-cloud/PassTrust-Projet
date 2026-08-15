@@ -13,14 +13,14 @@ const SUPABASE_KEY =
   "sb_publishable_4n64k5NM0t12Nat7aqqkzw_4FraK6IH";
 
 
-/* ---------- Initialisation Supabase ---------- */
+/* ---------- Initialisation ---------- */
 
 if (
   !window.supabase ||
   typeof window.supabase.createClient !== "function"
 ) {
   throw new Error(
-    "Le SDK Supabase est introuvable. Vérifie admin.html."
+    "Le SDK Supabase est introuvable."
   );
 }
 
@@ -79,82 +79,48 @@ const STATUS_VALUES = [
 ];
 
 
-/* ---------- Affichage général ---------- */
+/* ---------- Interface ---------- */
 
 function showLogin() {
-  if (authPanel) {
-    authPanel.classList.remove("hidden");
-  }
+  authPanel.classList.remove("hidden");
+  dashboardPanel.classList.add("hidden");
+  currentEmailDisplay.textContent = "";
+  leadCount.textContent = "0";
 
-  if (dashboardPanel) {
-    dashboardPanel.classList.add("hidden");
-  }
-
-  if (currentEmailDisplay) {
-    currentEmailDisplay.textContent = "";
-  }
-
-  if (leadsList) {
-    leadsList.innerHTML = `
-      <p class="loading">
-        Connexion nécessaire pour afficher les demandes.
-      </p>
-    `;
-  }
-
-  if (leadCount) {
-    leadCount.textContent = "0";
-  }
+  leadsList.innerHTML = `
+    <p class="loading">
+      Connexion nécessaire pour afficher les demandes.
+    </p>
+  `;
 }
 
 
 function showDashboard(email) {
-  if (authPanel) {
-    authPanel.classList.add("hidden");
-  }
-
-  if (dashboardPanel) {
-    dashboardPanel.classList.remove("hidden");
-  }
-
-  if (currentEmailDisplay) {
-    currentEmailDisplay.textContent =
-      email || "";
-  }
+  authPanel.classList.add("hidden");
+  dashboardPanel.classList.remove("hidden");
+  currentEmailDisplay.textContent = email || "";
 }
 
 
 function clearMessage(element) {
-  if (!element) {
-    return;
-  }
-
   element.textContent = "";
   element.className = "message";
 }
 
 
 function showError(element, message) {
-  if (!element) {
-    return;
-  }
-
   element.textContent = message;
   element.className = "message error";
 }
 
 
 function showSuccess(element, message) {
-  if (!element) {
-    return;
-  }
-
   element.textContent = message;
   element.className = "message success";
 }
 
 
-/* ---------- Gestion des erreurs ---------- */
+/* ---------- Erreurs ---------- */
 
 function readableError(error) {
   if (!error) {
@@ -164,11 +130,11 @@ function readableError(error) {
   const message =
     String(error.message || error);
 
-  const lowerMessage =
+  const lower =
     message.toLowerCase();
 
   if (
-    lowerMessage.includes(
+    lower.includes(
       "invalid login credentials"
     )
   ) {
@@ -176,7 +142,7 @@ function readableError(error) {
   }
 
   if (
-    lowerMessage.includes(
+    lower.includes(
       "email not confirmed"
     )
   ) {
@@ -184,50 +150,37 @@ function readableError(error) {
   }
 
   if (
-    lowerMessage.includes("invalid api key") ||
-    lowerMessage.includes("apikey")
+    lower.includes("invalid api key") ||
+    lower.includes("apikey")
   ) {
     return "Clé Supabase invalide.";
   }
 
   if (
-    lowerMessage.includes("failed to fetch") ||
-    lowerMessage.includes("network")
+    lower.includes("failed to fetch") ||
+    lower.includes("network")
   ) {
     return "Connexion impossible à Supabase.";
   }
 
   if (
-    lowerMessage.includes("permission denied") ||
-    lowerMessage.includes(
-      "row-level security"
-    ) ||
-    lowerMessage.includes(
-      "violates row-level security"
-    )
+    lower.includes("permission denied") ||
+    lower.includes("row-level security")
   ) {
-    return "Accès refusé par les règles RLS de Supabase.";
+    return "Accès refusé par les règles RLS.";
   }
 
   if (
-    lowerMessage.includes("relation") &&
-    lowerMessage.includes("does not exist")
+    lower.includes("does not exist")
   ) {
-    return "La table conduit est introuvable.";
-  }
-
-  if (
-    lowerMessage.includes("column") &&
-    lowerMessage.includes("does not exist")
-  ) {
-    return "Une colonne utilisée par le dashboard est introuvable.";
+    return "Table ou colonne introuvable.";
   }
 
   return message;
 }
 
 
-/* ---------- Connexion administrateur ---------- */
+/* ---------- Connexion ---------- */
 
 async function loginAdmin(
   email,
@@ -235,18 +188,6 @@ async function loginAdmin(
 ) {
   const cleanEmail =
     email.trim();
-
-  if (!cleanEmail) {
-    throw new Error(
-      "Veuillez saisir votre adresse email."
-    );
-  }
-
-  if (!password) {
-    throw new Error(
-      "Veuillez saisir votre mot de passe."
-    );
-  }
 
   const {
     data,
@@ -262,7 +203,7 @@ async function loginAdmin(
     throw error;
   }
 
-  if (!data || !data.user) {
+  if (!data?.user) {
     throw new Error(
       "Aucun utilisateur connecté."
     );
@@ -272,101 +213,84 @@ async function loginAdmin(
 }
 
 
-/* ---------- Formulaire de connexion ---------- */
+loginForm.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
 
-if (loginForm) {
-  loginForm.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
+    clearMessage(
+      loginMessage
+    );
 
-      clearMessage(
-        loginMessage
-      );
+    const email =
+      emailInput.value.trim();
 
-      const email =
-        emailInput
-          ? emailInput.value.trim()
-          : "";
+    const password =
+      passwordInput.value;
 
-      const password =
-        passwordInput
-          ? passwordInput.value
-          : "";
-
-      if (!email) {
-        showError(
-          loginMessage,
-          "Veuillez saisir votre adresse email."
-        );
-
-        return;
-      }
-
-      if (!password) {
-        showError(
-          loginMessage,
-          "Veuillez saisir votre mot de passe."
-        );
-
-        return;
-      }
-
-      const submitButton =
-        loginForm.querySelector(
-          'button[type="submit"]'
-        );
-
-      if (submitButton) {
-        submitButton.disabled = true;
-      }
-
-      showSuccess(
+    if (!email) {
+      showError(
         loginMessage,
-        "Connexion en cours..."
+        "Veuillez saisir votre adresse email."
       );
 
-      try {
-        const data =
-          await loginAdmin(
-            email,
-            password
-          );
-
-        showDashboard(
-          data.user.email
-        );
-
-        await loadLeads();
-
-        if (passwordInput) {
-          passwordInput.value = "";
-        }
-
-        clearMessage(
-          loginMessage
-        );
-      } catch (error) {
-        console.error(
-          "Erreur de connexion :",
-          error
-        );
-
-        showError(
-          loginMessage,
-          readableError(error)
-        );
-      } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-        }
-      }
+      return;
     }
-  );
-}
+
+    if (!password) {
+      showError(
+        loginMessage,
+        "Veuillez saisir votre mot de passe."
+      );
+
+      return;
+    }
+
+    const submitButton =
+      loginForm.querySelector(
+        'button[type="submit"]'
+      );
+
+    submitButton.disabled = true;
+
+    showSuccess(
+      loginMessage,
+      "Connexion en cours..."
+    );
+
+    try {
+      const result =
+        await loginAdmin(
+          email,
+          password
+        );
+
+      showDashboard(
+        result.user.email
+      );
+
+      await loadLeads();
+
+      passwordInput.value = "";
+      clearMessage(loginMessage);
+    } catch (error) {
+      console.error(
+        "Erreur de connexion :",
+        error
+      );
+
+      showError(
+        loginMessage,
+        readableError(error)
+      );
+    } finally {
+      submitButton.disabled = false;
+    }
+  }
+);
 
 
-/* ---------- Vérification de session ---------- */
+/* ---------- Session ---------- */
 
 async function checkSession() {
   const {
@@ -377,11 +301,6 @@ async function checkSession() {
       .getSession();
 
   if (error) {
-    console.error(
-      "Erreur de session :",
-      error
-    );
-
     showLogin();
 
     showError(
@@ -392,12 +311,9 @@ async function checkSession() {
     return;
   }
 
-  const session =
-    data?.session || null;
-
-  if (session?.user) {
+  if (data?.session?.user) {
     showDashboard(
-      session.user.email
+      data.session.user.email
     );
 
     await loadLeads();
@@ -406,8 +322,6 @@ async function checkSession() {
   }
 }
 
-
-/* ---------- Écoute de l'authentification ---------- */
 
 supabaseClient.auth.onAuthStateChange(
   (event, session) => {
@@ -419,12 +333,7 @@ supabaseClient.auth.onAuthStateChange(
         session.user.email
       );
 
-      setTimeout(
-        () => {
-          loadLeads();
-        },
-        0
-      );
+      loadLeads();
     }
 
     if (
@@ -438,46 +347,36 @@ supabaseClient.auth.onAuthStateChange(
 
 /* ---------- Déconnexion ---------- */
 
-if (logoutButton) {
-  logoutButton.addEventListener(
-    "click",
-    async () => {
-      clearMessage(
-        dashboardMessage
+logoutButton.addEventListener(
+  "click",
+  async () => {
+    logoutButton.disabled = true;
+
+    const {
+      error
+    } =
+      await supabaseClient.auth
+        .signOut();
+
+    logoutButton.disabled = false;
+
+    if (error) {
+      showError(
+        dashboardMessage,
+        readableError(error)
       );
 
-      logoutButton.disabled = true;
-
-      const {
-        error
-      } =
-        await supabaseClient.auth
-          .signOut();
-
-      logoutButton.disabled = false;
-
-      if (error) {
-        showError(
-          dashboardMessage,
-          readableError(error)
-        );
-
-        return;
-      }
-
-      showLogin();
+      return;
     }
-  );
-}
+
+    showLogin();
+  }
+);
 
 
-/* ---------- Chargement des demandes ---------- */
+/* ---------- Chargement ---------- */
 
 async function loadLeads() {
-  if (!leadsList) {
-    return;
-  }
-
   leadsList.innerHTML = `
     <p class="loading">
       Chargement des demandes...
@@ -513,22 +412,14 @@ async function loadLeads() {
       );
 
   if (error) {
-    console.error(
-      "Erreur de chargement :",
-      error
-    );
-
     leadsList.innerHTML = "";
 
     showError(
       dashboardMessage,
-      "Impossible de charger les demandes : " +
-        readableError(error)
+      readableError(error)
     );
 
-    if (leadCount) {
-      leadCount.textContent = "0";
-    }
+    leadCount.textContent = "0";
 
     return;
   }
@@ -541,17 +432,11 @@ async function loadLeads() {
 }
 
 
-/* ---------- Affichage des demandes ---------- */
+/* ---------- Affichage ---------- */
 
 function renderLeads(leads) {
-  if (!leadsList) {
-    return;
-  }
-
-  if (leadCount) {
-    leadCount.textContent =
-      String(leads.length);
-  }
+  leadCount.textContent =
+    String(leads.length);
 
   if (leads.length === 0) {
     leadsList.innerHTML = `
@@ -572,36 +457,6 @@ function renderLeads(leads) {
               lead.identifiant || ""
             );
 
-          const mode =
-            escapeHtml(
-              lead.mode ||
-                "Demande"
-            );
-
-          const name =
-            escapeHtml(
-              lead.nom ||
-                "Nom non renseigné"
-            );
-
-          const email =
-            escapeHtml(
-              lead.courriel ||
-                "Email non renseigné"
-            );
-
-          const need =
-            escapeHtml(
-              lead.besoin ||
-                "Aucun besoin renseigné"
-            );
-
-          const city =
-            escapeHtml(
-              lead.ville ||
-                "Ville non renseignée"
-            );
-
           const status =
             STATUS_VALUES.includes(
               lead.statut
@@ -609,39 +464,18 @@ function renderLeads(leads) {
               ? lead.statut
               : "Nouvelle";
 
-          const notes =
-            escapeHtml(
-              lead.notes ||
-                "Aucune note"
-            );
-
-          const date =
-            formatDate(
-              lead["créé_at"]
-            );
-
-          const selectedNew =
-            status === "Nouvelle"
-              ? "selected"
-              : "";
-
-          const selectedProgress =
-            status === "En cours"
-              ? "selected"
-              : "";
-
-          const selectedDone =
-            status === "Terminée"
-              ? "selected"
-              : "";
-
           return `
             <article
               class="lead-card"
               data-lead-id="${id}"
             >
               <div class="lead-header">
-                <h3>${name}</h3>
+                <h3>
+                  ${escapeHtml(
+                    lead.nom ||
+                      "Nom non renseigné"
+                  )}
+                </h3>
 
                 <span class="lead-status">
                   ${escapeHtml(status)}
@@ -649,27 +483,42 @@ function renderLeads(leads) {
               </div>
 
               <p class="lead-email">
-                ${email}
+                ${escapeHtml(
+                  lead.courriel ||
+                    "Email non renseigné"
+                )}
               </p>
 
               <p class="lead-info">
                 <strong>Mode :</strong>
-                ${mode}
+                ${escapeHtml(
+                  lead.mode ||
+                    "Demande"
+                )}
               </p>
 
               <p class="lead-info">
                 <strong>Besoin :</strong>
-                ${need}
+                ${escapeHtml(
+                  lead.besoin ||
+                    "Non renseigné"
+                )}
               </p>
 
               <p class="lead-info">
                 <strong>Ville :</strong>
-                ${city}
+                ${escapeHtml(
+                  lead.ville ||
+                    "Non renseignée"
+                )}
               </p>
 
               <p class="lead-message">
                 <strong>Notes :</strong>
-                ${notes}
+                ${escapeHtml(
+                  lead.notes ||
+                    "Aucune note"
+                )}
               </p>
 
               <div class="lead-controls">
@@ -686,21 +535,33 @@ function renderLeads(leads) {
                 >
                   <option
                     value="Nouvelle"
-                    ${selectedNew}
+                    ${
+                      status === "Nouvelle"
+                        ? "selected"
+                        : ""
+                    }
                   >
                     Nouvelle
                   </option>
 
                   <option
                     value="En cours"
-                    ${selectedProgress}
+                    ${
+                      status === "En cours"
+                        ? "selected"
+                        : ""
+                    }
                   >
                     En cours
                   </option>
 
                   <option
                     value="Terminée"
-                    ${selectedDone}
+                    ${
+                      status === "Terminée"
+                        ? "selected"
+                        : ""
+                    }
                   >
                     Terminée
                   </option>
@@ -717,7 +578,9 @@ function renderLeads(leads) {
               </div>
 
               <small class="lead-date">
-                ${date}
+                ${formatDate(
+                  lead["créé_at"]
+                )}
               </small>
             </article>
           `;
@@ -727,32 +590,22 @@ function renderLeads(leads) {
 }
 
 
-/* ---------- Modification du statut ---------- */
+/* ---------- Modification statut ---------- */
 
 async function updateLeadStatus(
   id,
   status
 ) {
-  if (!id) {
-    showError(
-      dashboardMessage,
-      "Identifiant de demande introuvable."
-    );
-
-    return false;
-  }
-
   if (!STATUS_VALUES.includes(status)) {
     showError(
       dashboardMessage,
-      "Statut sélectionné invalide."
+      "Statut invalide."
     );
 
     return false;
   }
 
   const {
-    data,
     error
   } =
     await supabaseClient
@@ -763,45 +616,12 @@ async function updateLeadStatus(
       .eq(
         "identifiant",
         id
-      )
-      .select(`
-        identifiant,
-        nom,
-        statut
-      `);
-
-  console.log(
-    "Résultat modification :",
-    {
-      id,
-      status,
-      data,
-      error
-    }
-  );
+      );
 
   if (error) {
-    console.error(
-      "Erreur de modification du statut :",
-      error
-    );
-
     showError(
       dashboardMessage,
-      "Impossible de modifier le statut : " +
-        readableError(error)
-    );
-
-    return false;
-  }
-
-  if (
-    !Array.isArray(data) ||
-    data.length === 0
-  ) {
-    showError(
-      dashboardMessage,
-      "Aucune demande n'a été modifiée. Vérifie l'identifiant et les policies RLS."
+      readableError(error)
     );
 
     return false;
@@ -816,118 +636,68 @@ async function updateLeadStatus(
 }
 
 
-/* ---------- Gestion des boutons de statut ---------- */
+leadsList.addEventListener(
+  "click",
+  async (event) => {
+    const button =
+      event.target.closest(
+        '[data-action="update-status"]'
+      );
 
-if (leadsList) {
-  leadsList.addEventListener(
-    "click",
-    async (event) => {
-      const button =
-        event.target.closest(
-          '[data-action="update-status"]'
-        );
-
-      if (!button) {
-        return;
-      }
-
-      const id =
-        button.dataset.leadId;
-
-      const card =
-        button.closest(
-          ".lead-card"
-        );
-
-      const select =
-        card
-          ? card.querySelector(
-              ".status-select"
-            )
-          : null;
-
-      if (!select) {
-        showError(
-          dashboardMessage,
-          "Sélecteur de statut introuvable."
-        );
-
-        return;
-      }
-
-      const originalText =
-        button.textContent;
-
-      button.disabled = true;
-      button.textContent =
-        "Enregistrement...";
-
-      const success =
-        await updateLeadStatus(
-          id,
-          select.value
-        );
-
-      if (success) {
-        await loadLeads();
-      } else {
-        button.disabled = false;
-        button.textContent =
-          originalText;
-      }
+    if (!button) {
+      return;
     }
-  );
-}
 
+    const card =
+      button.closest(
+        ".lead-card"
+      );
 
-/* ---------- Actualisation ---------- */
+    const select =
+      card.querySelector(
+        ".status-select"
+      );
 
-if (refreshButton) {
-  refreshButton.addEventListener(
-    "click",
-    async () => {
-      refreshButton.disabled = true;
-      refreshButton.textContent =
-        "Actualisation...";
+    button.disabled = true;
 
+    const success =
+      await updateLeadStatus(
+        button.dataset.leadId,
+        select.value
+      );
+
+    if (success) {
       await loadLeads();
-
-      refreshButton.disabled = false;
-      refreshButton.textContent =
-        "Actualiser";
     }
-  );
-}
+
+    button.disabled = false;
+  }
+);
 
 
-/* ---------- Protection contre l'injection HTML ---------- */
+/* ---------- Actualisation manuelle ---------- */
+
+refreshButton.addEventListener(
+  "click",
+  async () => {
+    refreshButton.disabled = true;
+    await loadLeads();
+    refreshButton.disabled = false;
+  }
+);
+
+
+/* ---------- Utilitaires ---------- */
 
 function escapeHtml(value) {
   return String(value)
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-
-/* ---------- Formatage des dates ---------- */
 
 function formatDate(value) {
   if (!value) {
@@ -954,74 +724,7 @@ function formatDate(value) {
   );
 }
 
-/* ---------- Actualisation en temps réel ---------- */
-
-let realtimeChannel = null;
-
-function subscribeToLeadsChanges() {
-  if (realtimeChannel) {
-    supabaseClient.removeChannel(
-      realtimeChannel
-    );
-  }
-
-  realtimeChannel =
-    supabaseClient
-      .channel("conduit-dashboard")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "conduit"
-        },
-        (payload) => {
-          console.log(
-            "Changement Realtime reçu :",
-            payload
-          );
-
-          loadLeads();
-        }
-      )
-      .subscribe(
-        (status, error) => {
-          console.log(
-            "Realtime conduit :",
-            status
-          );
-
-          if (
-            status === "SUBSCRIBED"
-          ) {
-            console.log(
-              "Realtime connecté avec succès."
-            );
-          }
-
-          if (
-            status === "CHANNEL_ERROR" ||
-            status === "TIMED_OUT"
-          ) {
-            console.error(
-              "Erreur Realtime :",
-              error
-            );
-          }
-        }
-      );
-}
-
 
 /* ---------- Démarrage ---------- */
 
-checkSession()
-  .then(() => {
-    subscribeToLeadsChanges();
-  })
-  .catch((error) => {
-    console.error(
-      "Erreur de démarrage :",
-      error
-    );
-  });
+checkSession();

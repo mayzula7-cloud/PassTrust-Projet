@@ -956,27 +956,62 @@ function formatDate(value) {
 
 /* ---------- Actualisation en temps réel ---------- */
 
+let realtimeChannel = null;
+
 function subscribeToLeadsChanges() {
-  supabaseClient
-    .channel("conduit-dashboard")
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "conduit"
-      },
-      () => {
-        loadLeads();
-      }
-    )
-    .subscribe((status) => {
-      console.log(
-        "Realtime conduit :",
-        status
+  if (realtimeChannel) {
+    supabaseClient.removeChannel(
+      realtimeChannel
+    );
+  }
+
+  realtimeChannel =
+    supabaseClient
+      .channel("conduit-dashboard")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conduit"
+        },
+        (payload) => {
+          console.log(
+            "Changement Realtime reçu :",
+            payload
+          );
+
+          loadLeads();
+        }
+      )
+      .subscribe(
+        (status, error) => {
+          console.log(
+            "Realtime conduit :",
+            status
+          );
+
+          if (
+            status === "SUBSCRIBED"
+          ) {
+            console.log(
+              "Realtime connecté avec succès."
+            );
+          }
+
+          if (
+            status === "CHANNEL_ERROR" ||
+            status === "TIMED_OUT"
+          ) {
+            console.error(
+              "Erreur Realtime :",
+              error
+            );
+          }
+        }
       );
-    });
 }
+
 
 /* ---------- Démarrage ---------- */
 
@@ -987,6 +1022,9 @@ checkSession()
   .catch((error) => {
     console.error(
       "Erreur de démarrage :",
+      error
+    );
+  });
       error
     );
   });

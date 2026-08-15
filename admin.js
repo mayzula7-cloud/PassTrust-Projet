@@ -227,9 +227,12 @@ function readableError(error) {
 }
 
 
-/* ---------- Connexion ---------- */
+/* ---------- Connexion administrateur ---------- */
 
-async function loginAdmin(email, password) {
+async function loginAdmin(
+  email,
+  password
+) {
   const cleanEmail =
     email.trim();
 
@@ -277,7 +280,9 @@ if (loginForm) {
     async (event) => {
       event.preventDefault();
 
-      clearMessage(loginMessage);
+      clearMessage(
+        loginMessage
+      );
 
       const email =
         emailInput
@@ -294,6 +299,7 @@ if (loginForm) {
           loginMessage,
           "Veuillez saisir votre adresse email."
         );
+
         return;
       }
 
@@ -302,6 +308,7 @@ if (loginForm) {
           loginMessage,
           "Veuillez saisir votre mot de passe."
         );
+
         return;
       }
 
@@ -336,7 +343,9 @@ if (loginForm) {
           passwordInput.value = "";
         }
 
-        clearMessage(loginMessage);
+        clearMessage(
+          loginMessage
+        );
       } catch (error) {
         console.error(
           "Erreur de connexion :",
@@ -398,7 +407,7 @@ async function checkSession() {
 }
 
 
-/* ---------- Écoute authentification ---------- */
+/* ---------- Écoute de l'authentification ---------- */
 
 supabaseClient.auth.onAuthStateChange(
   (event, session) => {
@@ -743,6 +752,7 @@ async function updateLeadStatus(
   }
 
   const {
+    data,
     error
   } =
     await supabaseClient
@@ -753,7 +763,22 @@ async function updateLeadStatus(
       .eq(
         "identifiant",
         id
-      );
+      )
+      .select(`
+        identifiant,
+        nom,
+        statut
+      `);
+
+  console.log(
+    "Résultat modification :",
+    {
+      id,
+      status,
+      data,
+      error
+    }
+  );
 
   if (error) {
     console.error(
@@ -765,6 +790,18 @@ async function updateLeadStatus(
       dashboardMessage,
       "Impossible de modifier le statut : " +
         readableError(error)
+    );
+
+    return false;
+  }
+
+  if (
+    !Array.isArray(data) ||
+    data.length === 0
+  ) {
+    showError(
+      dashboardMessage,
+      "Aucune demande n'a été modifiée. Vérifie l'identifiant et les policies RLS."
     );
 
     return false;
@@ -863,7 +900,7 @@ if (refreshButton) {
 }
 
 
-/* ---------- Protection HTML ---------- */
+/* ---------- Protection contre l'injection HTML ---------- */
 
 function escapeHtml(value) {
   return String(value)

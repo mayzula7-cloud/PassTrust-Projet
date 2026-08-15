@@ -3,25 +3,24 @@
    Connexion administrateur avec Supabase
    ========================================================= */
 
-/* ---------- Configuration Supabase ---------- */
+
+/* ---------- Configuration ---------- */
 
 const SUPABASE_URL =
-  "https://aohplqbwwbxxpkpmapxk.supabase.co/";
+  "https://aohplqbwwbxxpkpmapxk.supabase.co";
 
 const SUPABASE_KEY =
   "sb_publishable_4n64k5NM0t12Nat7aqqkzw_4FraK6IH";
 
-const SITE_URL =
-  "https://mayzula7-cloud.github.io/PassTrust-Projet/";
 
-const ADMIN_URL =
-  "https://mayzula7-cloud.github.io/PassTrust-Projet/admin.html";
+/* ---------- Initialisation Supabase ---------- */
 
-/* ---------- Vérification du SDK ---------- */
-
-if (!window.supabase || typeof window.supabase.createClient !== "function") {
+if (
+  !window.supabase ||
+  typeof window.supabase.createClient !== "function"
+) {
   throw new Error(
-    "Supabase SDK introuvable. Vérifie l'ordre des scripts dans admin.html."
+    "Le SDK Supabase est introuvable. Vérifie admin.html."
   );
 }
 
@@ -30,35 +29,68 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_KEY
 );
 
+
 /* ---------- Éléments HTML ---------- */
 
-const authPanel = document.querySelector("#auth-panel");
-const dashboardPanel = document.querySelector("#dashboard-panel");
+const authPanel =
+  document.querySelector("#auth-panel");
 
-const loginForm = document.querySelector("#login-form");
-const emailInput = document.querySelector("#current-email");
+const dashboardPanel =
+  document.querySelector("#dashboard-panel");
 
-const loginMessage = document.querySelector("#login-message");
-const dashboardMessage = document.querySelector("#dashboard-message");
+const loginForm =
+  document.querySelector("#login-form");
 
-const currentEmail = document.querySelector("#current-email-display");
-const logoutButton = document.querySelector("#logout-button");
-const refreshButton = document.querySelector("#refresh-button");
+const emailInput =
+  document.querySelector("#current-email");
 
-const leadsList = document.querySelector("#leads-list");
-const leadCount = document.querySelector("#lead-count");
+const passwordInput =
+  document.querySelector("#admin-password");
 
-/* ---------- Vérification des éléments ---------- */
+const loginMessage =
+  document.querySelector("#login-message");
+
+const dashboardMessage =
+  document.querySelector("#dashboard-message");
+
+const currentEmailDisplay =
+  document.querySelector("#current-email-display");
+
+const logoutButton =
+  document.querySelector("#logout-button");
+
+const refreshButton =
+  document.querySelector("#refresh-button");
+
+const leadsList =
+  document.querySelector("#leads-list");
+
+const leadCount =
+  document.querySelector("#lead-count");
+
+
+/* ---------- Vérification du formulaire ---------- */
 
 if (!loginForm) {
-  console.warn("Élément #login-form introuvable.");
+  console.error(
+    "Le formulaire #login-form est introuvable."
+  );
 }
 
 if (!emailInput) {
-  console.warn("Élément #current-email introuvable.");
+  console.error(
+    "Le champ #current-email est introuvable."
+  );
 }
 
-/* ---------- Fonctions d'affichage ---------- */
+if (!passwordInput) {
+  console.error(
+    "Le champ #admin-password est introuvable."
+  );
+}
+
+
+/* ---------- Affichage ---------- */
 
 function showLogin() {
   if (authPanel) {
@@ -69,8 +101,8 @@ function showLogin() {
     dashboardPanel.classList.add("hidden");
   }
 
-  if (currentEmail) {
-    currentEmail.textContent = "";
+  if (currentEmailDisplay) {
+    currentEmailDisplay.textContent = "";
   }
 
   if (leadsList) {
@@ -82,6 +114,7 @@ function showLogin() {
   }
 }
 
+
 function showDashboard(email) {
   if (authPanel) {
     authPanel.classList.add("hidden");
@@ -91,28 +124,11 @@ function showDashboard(email) {
     dashboardPanel.classList.remove("hidden");
   }
 
-  if (currentEmail) {
-    currentEmail.textContent = email || "";
+  if (currentEmailDisplay) {
+    currentEmailDisplay.textContent = email || "";
   }
 }
 
-function showError(element, message) {
-  if (!element) {
-    return;
-  }
-
-  element.textContent = message;
-  element.className = "error";
-}
-
-function showSuccess(element, message) {
-  if (!element) {
-    return;
-  }
-
-  element.textContent = message;
-  element.className = "success";
-}
 
 function clearMessage(element) {
   if (!element) {
@@ -120,92 +136,134 @@ function clearMessage(element) {
   }
 
   element.textContent = "";
-  element.className = "";
+  element.className = "message";
 }
 
-/* ---------- Messages d'erreur lisibles ---------- */
 
-function getReadableError(error) {
+function showError(element, message) {
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.className = "message error";
+}
+
+
+function showSuccess(element, message) {
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.className = "message success";
+}
+
+
+/* ---------- Messages d'erreur ---------- */
+
+function readableError(error) {
   if (!error) {
     return "Une erreur inconnue est survenue.";
   }
 
-  const message = String(error.message || error);
+  const message =
+    String(error.message || error);
+
+  const lowerMessage =
+    message.toLowerCase();
 
   if (
-    message.toLowerCase().includes("invalid path") ||
-    message.toLowerCase().includes("invalid path specified")
+    lowerMessage.includes("invalid login credentials")
   ) {
     return (
-      "URL Supabase invalide. Vérifie que SUPABASE_URL se termine " +
+      "Email ou mot de passe incorrect."
+    );
+  }
+
+  if (
+    lowerMessage.includes("email not confirmed")
+  ) {
+    return (
+      "Ton adresse email n'est pas confirmée."
+    );
+  }
+
+  if (
+    lowerMessage.includes("invalid api key") ||
+    lowerMessage.includes("apikey")
+  ) {
+    return (
+      "Clé Supabase invalide. Vérifie SUPABASE_KEY."
+    );
+  }
+
+  if (
+    lowerMessage.includes("invalid path") ||
+    lowerMessage.includes(
+      "invalid path specified"
+    )
+  ) {
+    return (
+      "URL Supabase invalide. Elle doit se terminer " +
       "uniquement par .supabase.co."
     );
   }
 
   if (
-    message.toLowerCase().includes("failed to fetch") ||
-    message.toLowerCase().includes("network")
+    lowerMessage.includes("failed to fetch") ||
+    lowerMessage.includes("network")
   ) {
     return (
-      "Connexion impossible à Supabase. Vérifie ta connexion Internet " +
-      "et l'URL du projet."
+      "Connexion impossible à Supabase. " +
+      "Vérifie ta connexion Internet."
     );
   }
 
   if (
-    message.toLowerCase().includes("invalid api key") ||
-    message.toLowerCase().includes("apikey")
-  ) {
-    return "Clé Supabase invalide. Vérifie la clé publiable.";
-  }
-
-  if (
-    message.toLowerCase().includes("email not confirmed") ||
-    message.toLowerCase().includes("email_not_confirmed")
-  ) {
-    return "Cette adresse email n'a pas encore été confirmée.";
-  }
-
-  if (
-    message.toLowerCase().includes("rate limit") ||
-    message.toLowerCase().includes("too many requests")
-  ) {
-    return "Trop de demandes. Attends quelques minutes avant de réessayer.";
-  }
-
-  if (
-    message.toLowerCase().includes("row-level security") ||
-    message.toLowerCase().includes("permission denied")
+    lowerMessage.includes("permission denied") ||
+    lowerMessage.includes("row-level security")
   ) {
     return (
-      "Accès refusé par Supabase. Vérifie les politiques RLS " +
-      "de tes tables."
+      "Accès refusé par les règles RLS de Supabase."
+    );
+  }
+
+  if (
+    lowerMessage.includes("too many requests") ||
+    lowerMessage.includes("rate limit")
+  ) {
+    return (
+      "Trop de tentatives. Attends quelques minutes."
     );
   }
 
   return message;
 }
 
-/* ---------- Validation de l'email ---------- */
 
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-/* ---------- Envoi du lien de connexion ---------- */
+/* ---------- Connexion admin ---------- */
 
 async function loginAdmin(email, password) {
-  const cleanEmail = email.trim();
+  const cleanEmail =
+    email.trim();
 
   if (!cleanEmail) {
-    throw new Error("Veuillez saisir votre adresse email.");
+    throw new Error(
+      "Veuillez saisir votre adresse email."
+    );
   }
 
   if (!password) {
-    throw new Error("Veuillez saisir votre mot de passe.");
+    throw new Error(
+      "Veuillez saisir votre mot de passe."
+    );
   }
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await supabaseClient.auth.signInWithPassword({
       email: cleanEmail,
       password
@@ -215,102 +273,190 @@ async function loginAdmin(email, password) {
     throw error;
   }
 
+  if (!data || !data.user) {
+    throw new Error(
+      "Aucun utilisateur connecté."
+    );
+  }
+
   return data;
 }
 
-async function handleRecoverySession() {
+
+/* ---------- Écouteur du formulaire ---------- */
+
+if (loginForm) {
+  loginForm.addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
+
+      clearMessage(loginMessage);
+
+      const email =
+        emailInput
+          ? emailInput.value.trim()
+          : "";
+
+      const password =
+        passwordInput
+          ? passwordInput.value
+          : "";
+
+      if (!email) {
+        showError(
+          loginMessage,
+          "Veuillez saisir votre adresse email."
+        );
+        return;
+      }
+
+      if (!password) {
+        showError(
+          loginMessage,
+          "Veuillez saisir votre mot de passe."
+        );
+        return;
+      }
+
+      const submitButton =
+        loginForm.querySelector(
+          'button[type="submit"]'
+        );
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      showSuccess(
+        loginMessage,
+        "Connexion en cours..."
+      );
+
+      try {
+        const data =
+          await loginAdmin(
+            email,
+            password
+          );
+
+        showDashboard(
+          data.user.email
+        );
+
+        await loadLeads();
+
+        if (passwordInput) {
+          passwordInput.value = "";
+        }
+      } catch (error) {
+        console.error(
+          "Erreur de connexion :",
+          error
+        );
+
+        showError(
+          loginMessage,
+          readableError(error)
+        );
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    }
+  );
+}
+
+
+/* ---------- Session existante ---------- */
+
+async function checkSession() {
   const {
-    data: { session },
+    data,
     error
-  } = await supabaseClient.auth.getSession();
+  } =
+    await supabaseClient.auth.getSession();
 
   if (error) {
-    console.error("Erreur de session :", error);
+    console.error(
+      "Erreur de session :",
+      error
+    );
+    showLogin();
     return;
   }
 
+  const session =
+    data
+      ? data.session
+      : null;
+
   if (session && session.user) {
-    showDashboard(session.user.email);
+    showDashboard(
+      session.user.email
+    );
+
     await loadLeads();
   } else {
     showLogin();
   }
 }
 
-/* ---------- Écoute des changements de session ---------- */
 
-supabaseClient.auth.onAuthStateChange(async (event, session) => {
-  if (session && session.user) {
-    showDashboard(session.user.email);
+/* ---------- Écoute des changements ---------- */
 
-    if (event !== "INITIAL_SESSION") {
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+    if (
+      event === "SIGNED_IN" &&
+      session &&
+      session.user
+    ) {
+      showDashboard(
+        session.user.email
+      );
+
       await loadLeads();
     }
-  } else {
-    showLogin();
+
+    if (
+      event === "SIGNED_OUT"
+    ) {
+      showLogin();
+    }
   }
-});
+);
 
-/* ---------- Soumission du formulaire ---------- */
-
-if (loginForm) {
-  loginForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    clearMessage(loginMessage);
-
-    const email = emailInput ? emailInput.value.trim() : "";
-
-    if (!email) {
-      showError(loginMessage, "Veuillez saisir votre adresse email.");
-      return;
-    }
-
-    const submitButton = loginForm.querySelector(
-      'button[type="submit"], input[type="submit"]'
-    );
-
-    if (submitButton) {
-      submitButton.disabled = true;
-    }
-
-    showSuccess(loginMessage, "Envoi du lien en cours...");
-
-    try {
-      await sendLoginLink(email);
-
-      showSuccess(
-        loginMessage,
-        "Le lien a été envoyé. Vérifie ta boîte email et tes spams."
-      );
-    } catch (error) {
-      console.error("Erreur Supabase :", error);
-      showError(loginMessage, getReadableError(error));
-    } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-      }
-    }
-  });
-}
 
 /* ---------- Déconnexion ---------- */
 
 if (logoutButton) {
-  logoutButton.addEventListener("click", async () => {
-    clearMessage(dashboardMessage);
+  logoutButton.addEventListener(
+    "click",
+    async () => {
+      clearMessage(
+        dashboardMessage
+      );
 
-    const { error } = await supabaseClient.auth.signOut();
+      const {
+        error
+      } =
+        await supabaseClient.auth.signOut();
 
-    if (error) {
-      console.error("Erreur de déconnexion :", error);
-      showError(dashboardMessage, getReadableError(error));
-      return;
+      if (error) {
+        showError(
+          dashboardMessage,
+          readableError(error)
+        );
+        return;
+      }
+
+      showLogin();
     }
-
-    showLogin();
-  });
+  );
 }
+
 
 /* ---------- Chargement des demandes ---------- */
 
@@ -319,32 +465,41 @@ async function loadLeads() {
     return;
   }
 
-  leadsList.innerHTML = `
-    <p class="loading">Chargement des demandes...</p>
-  `;
+  leadsList.innerHTML =
+    "<p class='loading'>" +
+    "Chargement des demandes..." +
+    "</p>";
 
-  clearMessage(dashboardMessage);
+  clearMessage(
+    dashboardMessage
+  );
 
-  /*
-    Le code essaie d'abord la table "leads".
-    Si ta table possède un autre nom, remplace "leads"
-    par le nom exact de ta table Supabase.
-  */
-
-  const { data, error } = await supabaseClient
-    .from("leads")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("leads")
+      .select("*")
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
 
   if (error) {
-    console.error("Erreur de chargement des demandes :", error);
+    console.error(
+      "Erreur de chargement :",
+      error
+    );
 
     leadsList.innerHTML = "";
 
     showError(
       dashboardMessage,
       "Impossible de charger les demandes : " +
-        getReadableError(error)
+        readableError(error)
     );
 
     if (leadCount) {
@@ -354,8 +509,11 @@ async function loadLeads() {
     return;
   }
 
-  renderLeads(data || []);
+  renderLeads(
+    data || []
+  );
 }
+
 
 /* ---------- Affichage des demandes ---------- */
 
@@ -365,78 +523,98 @@ function renderLeads(leads) {
   }
 
   if (leadCount) {
-    leadCount.textContent = String(leads.length);
+    leadCount.textContent =
+      String(leads.length);
   }
 
-  if (!leads.length) {
-    leadsList.innerHTML = `
-      <p class="empty">
-        Aucune demande pour le moment.
-      </p>
-    `;
+  if (leads.length === 0) {
+    leadsList.innerHTML =
+      "<p class='empty'>" +
+      "Aucune demande pour le moment." +
+      "</p>";
     return;
   }
 
-  leadsList.innerHTML = leads
-    .map((lead) => {
-      const name = escapeHtml(
-        lead.name ||
-          lead.full_name ||
-          lead.nom ||
-          "Utilisateur sans nom"
-      );
+  leadsList.innerHTML =
+    leads
+      .map((lead) => {
+        const name =
+          escapeHtml(
+            lead.name ||
+            lead.full_name ||
+            lead.nom ||
+            "Utilisateur sans nom"
+          );
 
-      const email = escapeHtml(
-        lead.email ||
-          lead.user_email ||
-          lead.email_address ||
-          "Email non renseigné"
-      );
+        const email =
+          escapeHtml(
+            lead.email ||
+            lead.user_email ||
+            "Email non renseigné"
+          );
 
-      const message = escapeHtml(
-        lead.message ||
-          lead.description ||
-          lead.details ||
-          "Aucun détail"
-      );
+        const message =
+          escapeHtml(
+            lead.message ||
+            lead.description ||
+            lead.details ||
+            "Aucun détail"
+          );
 
-      const status = escapeHtml(
-        lead.status ||
-          lead.statut ||
-          "Nouvelle"
-      );
+        const status =
+          escapeHtml(
+            lead.status ||
+            lead.statut ||
+            "Nouvelle"
+          );
 
-      const createdAt = formatDate(
-        lead.created_at ||
-          lead.createdAt ||
-          lead.date_creation
-      );
+        const date =
+          formatDate(
+            lead.created_at ||
+            lead.createdAt ||
+            lead.date_creation
+          );
 
-      return `
-        <article class="lead-card">
-          <div class="lead-header">
-            <h3>${name}</h3>
-            <span class="lead-status">${status}</span>
-          </div>
+        return `
+          <article class="lead-card">
+            <div class="lead-header">
+              <h3>${name}</h3>
+              <span class="lead-status">
+                ${status}
+              </span>
+            </div>
 
-          <p class="lead-email">${email}</p>
-          <p class="lead-message">${message}</p>
-          <small class="lead-date">${createdAt}</small>
-        </article>
-      `;
-    })
-    .join("");
+            <p class="lead-email">
+              ${email}
+            </p>
+
+            <p class="lead-message">
+              ${message}
+            </p>
+
+            <small class="lead-date">
+              ${date}
+            </small>
+          </article>
+        `;
+      })
+      .join("");
 }
+
 
 /* ---------- Actualisation ---------- */
 
 if (refreshButton) {
-  refreshButton.addEventListener("click", async () => {
-    await loadLeads();
-  });
+  refreshButton.addEventListener(
+    "click",
+    async () => {
+      await loadLeads();
+    }
+  );
 }
 
-/* ---------- Utilitaires ---------- */
+
+/* ---------- Sécurité HTML ---------- */
 
 function escapeHtml(value) {
   return String(value)
@@ -447,30 +625,33 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+
 function formatDate(value) {
   if (!value) {
     return "Date inconnue";
   }
 
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return String(value);
   }
 
-  return date.toLocaleString("fr-FR", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  });
+  return date.toLocaleString(
+    "fr-FR",
+    {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }
+  );
 }
+
 
 /* ---------- Démarrage ---------- */
 
-(async function initAdmin() {
-  try {
-    await handleRecoverySession();
-  } catch (error) {
-    console.error("Erreur au démarrage :", error);
-    showLogin();
-  }
-})();
+checkSession();

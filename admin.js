@@ -73,8 +73,13 @@ const leadCount =
 /* ---------- Affichage ---------- */
 
 function showLogin() {
-  authPanel?.classList.remove("hidden");
-  dashboardPanel?.classList.add("hidden");
+  if (authPanel) {
+    authPanel.classList.remove("hidden");
+  }
+
+  if (dashboardPanel) {
+    dashboardPanel.classList.add("hidden");
+  }
 
   if (currentEmailDisplay) {
     currentEmailDisplay.textContent = "";
@@ -91,8 +96,13 @@ function showLogin() {
 
 
 function showDashboard(email) {
-  authPanel?.classList.add("hidden");
-  dashboardPanel?.classList.remove("hidden");
+  if (authPanel) {
+    authPanel.classList.add("hidden");
+  }
+
+  if (dashboardPanel) {
+    dashboardPanel.classList.remove("hidden");
+  }
 
   if (currentEmailDisplay) {
     currentEmailDisplay.textContent =
@@ -180,14 +190,25 @@ function readableError(error) {
       "row-level security"
     )
   ) {
-    return "Accès refusé par les règles RLS.";
+    return "Accès refusé par les règles RLS de Supabase.";
+  }
+
+  if (
+    lowerMessage.includes(
+      "relation"
+    ) &&
+    lowerMessage.includes(
+      "does not exist"
+    )
+  ) {
+    return "La table conduit est introuvable.";
   }
 
   return message;
 }
 
 
-/* ---------- Connexion admin ---------- */
+/* ---------- Connexion administrateur ---------- */
 
 async function loginAdmin(email, password) {
   const cleanEmail =
@@ -219,7 +240,7 @@ async function loginAdmin(email, password) {
     throw error;
   }
 
-  if (!data?.user) {
+  if (!data || !data.user) {
     throw new Error(
       "Aucun utilisateur connecté."
     );
@@ -240,10 +261,30 @@ if (loginForm) {
       clearMessage(loginMessage);
 
       const email =
-        emailInput?.value.trim() || "";
+        emailInput
+          ? emailInput.value.trim()
+          : "";
 
       const password =
-        passwordInput?.value || "";
+        passwordInput
+          ? passwordInput.value
+          : "";
+
+      if (!email) {
+        showError(
+          loginMessage,
+          "Veuillez saisir votre adresse email."
+        );
+        return;
+      }
+
+      if (!password) {
+        showError(
+          loginMessage,
+          "Veuillez saisir votre mot de passe."
+        );
+        return;
+      }
 
       const submitButton =
         loginForm.querySelector(
@@ -295,7 +336,7 @@ if (loginForm) {
 }
 
 
-/* ---------- Session existante ---------- */
+/* ---------- Vérification de session ---------- */
 
 async function checkSession() {
   const {
@@ -330,7 +371,7 @@ async function checkSession() {
 }
 
 
-/* ---------- Écoute des changements ---------- */
+/* ---------- Écoute des changements d'authentification ---------- */
 
 supabaseClient.auth.onAuthStateChange(
   (event, session) => {
@@ -342,9 +383,12 @@ supabaseClient.auth.onAuthStateChange(
         session.user.email
       );
 
-      setTimeout(() => {
-        loadLeads();
-      }, 0);
+      setTimeout(
+        () => {
+          loadLeads();
+        },
+        0
+      );
     }
 
     if (
@@ -460,6 +504,7 @@ function renderLeads(leads) {
       "<p class='empty'>" +
       "Aucune demande pour le moment." +
       "</p>";
+
     return;
   }
 
@@ -487,7 +532,7 @@ function renderLeads(leads) {
         const need =
           escapeHtml(
             lead.besoin ||
-            "Besoin non renseigné"
+            "Aucun besoin renseigné"
           );
 
         const city =
@@ -543,6 +588,7 @@ function renderLeads(leads) {
             </p>
 
             <p class="lead-message">
+              <strong>Notes :</strong>
               ${notes}
             </p>
 
@@ -568,7 +614,7 @@ if (refreshButton) {
 }
 
 
-/* ---------- Sécurité HTML ---------- */
+/* ---------- Protection contre l'injection HTML ---------- */
 
 function escapeHtml(value) {
   return String(value)
@@ -579,6 +625,8 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+
+/* ---------- Formatage des dates ---------- */
 
 function formatDate(value) {
   if (!value) {

@@ -1,14 +1,38 @@
+/* =========================================================
+   PassTrust - supabase-client.js
+   Formulaire public connecté à Supabase
+   ========================================================= */
+
+
+/* ---------- Configuration ---------- */
+
 const SUPABASE_URL =
   "https://aohplqbwwbxxpkpmapxk.supabase.co";
 
 const SUPABASE_KEY =
   "sb_publishable_4n64k5NM0t12Nat7aqqkzw_4FraK6IH";
 
+
+/* ---------- Initialisation Supabase ---------- */
+
+if (
+  !window.supabase ||
+  typeof window.supabase.createClient !== "function"
+) {
+  throw new Error(
+    "Le SDK Supabase est introuvable. " +
+    "Vérifie que supabase-js est chargé avant ce fichier."
+  );
+}
+
 const supabaseClient =
   window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
+
+
+/* ---------- Éléments HTML ---------- */
 
 const form =
   document.querySelector("#lead-form");
@@ -19,11 +43,45 @@ const status =
 const modeInput =
   document.querySelector("#mode");
 
+
+/* ---------- Affichage du statut ---------- */
+
+function setStatus(
+  message,
+  className = ""
+) {
+  if (!status) {
+    return;
+  }
+
+  status.className =
+    className;
+
+  status.textContent =
+    message;
+}
+
+
+/* ---------- Envoi du formulaire ---------- */
+
 if (form) {
   form.addEventListener(
     "submit",
     async (event) => {
       event.preventDefault();
+
+      const submitButton =
+        form.querySelector(
+          'button[type="submit"]'
+        );
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      setStatus(
+        "Envoi en cours..."
+      );
 
       const formData =
         new FormData(form);
@@ -32,7 +90,7 @@ if (form) {
         mode: String(
           formData.get("mode") ||
           "help"
-        ),
+        ).trim(),
 
         nom: String(
           formData.get("name") ||
@@ -59,45 +117,87 @@ if (form) {
         notes: ""
       };
 
-      if (status) {
-        status.className = "";
-        status.textContent =
-          "Envoi en cours...";
-      }
-
-      const {
-        error
-      } =
-        await supabaseClient
-          .from("conduit")
-          .insert(payload);
-
-      if (error) {
-        console.error(
-          "Erreur Supabase :",
-          error
+      if (!payload.nom) {
+        setStatus(
+          "Veuillez renseigner votre nom.",
+          "error"
         );
 
-        if (status) {
-          status.className = "error";
-          status.textContent =
-            `Erreur : ${error.message}`;
+        if (submitButton) {
+          submitButton.disabled = false;
         }
 
         return;
       }
 
-      form.reset();
+      if (!payload.courriel) {
+        setStatus(
+          "Veuillez renseigner votre email.",
+          "error"
+        );
 
-      if (modeInput) {
-        modeInput.value = "help";
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+
+        return;
       }
 
-      if (status) {
-        status.className = "success";
-        status.textContent =
-          "Merci, votre demande a bien été envoyée.";
+      if (!payload.besoin) {
+        setStatus(
+          "Veuillez préciser votre besoin.",
+          "error"
+        );
+
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+
+        return;
+      }
+
+      try {
+        const {
+          error
+        } =
+          await supabaseClient
+            .from("conduit")
+            .insert(payload);
+
+        if (error) {
+          throw error;
+        }
+
+        form.reset();
+
+        if (modeInput) {
+          modeInput.value =
+            "help";
+        }
+
+        setStatus(
+          "Merci, votre demande a bien été envoyée.",
+          "success"
+        );
+      } catch (error) {
+        console.error(
+          "Erreur Supabase :",
+          error
+        );
+
+        setStatus(
+          `Erreur : ${error.message}`,
+          "error"
+        );
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
       }
     }
+  );
+} else {
+  console.warn(
+    "Le formulaire #lead-form est introuvable."
   );
 }

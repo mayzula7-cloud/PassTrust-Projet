@@ -2,7 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
   <title>PassTrust — Le passeport de confiance</title>
 
   <style>
@@ -26,7 +30,8 @@
 
     body {
       margin: 0;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: Inter, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--ink);
     }
@@ -78,6 +83,11 @@
       font: inherit;
       font-weight: 700;
       cursor: pointer;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: .65;
     }
 
     .primary {
@@ -153,7 +163,11 @@
       height: 100%;
       overflow: hidden;
       border-radius: 22px;
-      background: linear-gradient(135deg, #d7ecea, #f4fbfb);
+      background: linear-gradient(
+        135deg,
+        #d7ecea,
+        #f4fbfb
+      );
     }
 
     .road {
@@ -208,7 +222,11 @@
       margin-right: 10px;
       border-radius: 50%;
       color: #fff;
-      background: linear-gradient(135deg, var(--teal), #8ce2d6);
+      background: linear-gradient(
+        135deg,
+        var(--teal),
+        #8ce2d6
+      );
       font-weight: 800;
       vertical-align: middle;
     }
@@ -344,6 +362,8 @@
     .modal-box {
       position: relative;
       width: min(480px, 100%);
+      max-height: 92vh;
+      overflow-y: auto;
       padding: 28px;
       border-radius: 20px;
       background: #fff;
@@ -364,9 +384,23 @@
       font: inherit;
     }
 
+    .modal-box input:focus,
+    .modal-box textarea:focus {
+      outline: 2px solid rgba(32, 184, 166, .25);
+      border-color: var(--teal);
+    }
+
     .modal-box textarea {
       min-height: 90px;
       resize: vertical;
+    }
+
+    .notes-label {
+      display: block;
+      margin-top: 12px;
+      color: var(--navy);
+      font-size: 14px;
+      font-weight: 700;
     }
 
     .close {
@@ -451,12 +485,19 @@
 
 <body>
   <header>
-    <div class="logo">Pass<span>Trust</span></div>
+    <div class="logo">
+      Pass<span>Trust</span>
+    </div>
 
     <nav>
       <a href="#how">Comment ça marche</a>
       <a href="#trust">Confiance</a>
-      <button class="btn primary" type="button" onclick="openForm('help')">
+
+      <button
+        class="btn primary"
+        type="button"
+        onclick="openForm('help')"
+      >
         Commencer
       </button>
     </nav>
@@ -465,7 +506,9 @@
   <main>
     <section class="hero">
       <div>
-        <div class="eyebrow">Le passeport de confiance</div>
+        <div class="eyebrow">
+          Le passeport de confiance
+        </div>
 
         <h1>
           Un besoin.<br>
@@ -473,16 +516,24 @@
         </h1>
 
         <p class="lead">
-          PassTrust vous aide à trouver quelqu’un de confiance pour résoudre
-          les besoins du quotidien — près de chez vous.
+          PassTrust vous aide à trouver quelqu’un de confiance
+          pour résoudre les besoins du quotidien — près de chez vous.
         </p>
 
         <div class="actions">
-          <button class="btn primary" type="button" onclick="openForm('help')">
+          <button
+            class="btn primary"
+            type="button"
+            onclick="openForm('help')"
+          >
             J’ai besoin d’aide
           </button>
 
-          <button class="btn secondary" type="button" onclick="openForm('offer')">
+          <button
+            class="btn secondary"
+            type="button"
+            onclick="openForm('offer')"
+          >
             Je peux aider
           </button>
         </div>
@@ -494,7 +545,10 @@
         </div>
       </div>
 
-      <div class="visual" aria-hidden="true">
+      <div
+        class="visual"
+        aria-hidden="true"
+      >
         <div class="map">
           <div class="road r1"></div>
           <div class="road r2"></div>
@@ -505,25 +559,45 @@
               <strong>Marie, 28</strong>
             </div>
 
-            <div class="verified">✓ Identité vérifiée</div>
-            <small>Montage · 4,9 ★</small>
+            <div class="verified">
+              ✓ Identité vérifiée
+            </div>
+
+            <small>
+              Montage · 4,9 ★
+            </small>
           </div>
 
           <div class="request-card">
             <strong>Besoin d’aide</strong>
-            <p style="margin: 8px 0; color: #657184; font-size: 13px;">
+
+            <p
+              style="
+                margin: 8px 0;
+                color: #657184;
+                font-size: 13px;
+              "
+            >
               Monter une étagère samedi
             </p>
-            <div class="verified">3 personnes disponibles</div>
+
+            <div class="verified">
+              3 personnes disponibles
+            </div>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <section class="section" id="trust">
+  <section
+    class="section"
+    id="trust"
+  >
     <div class="wrap">
-      <h2>La confiance se construit avec des preuves</h2>
+      <h2>
+        La confiance se construit avec des preuves
+      </h2>
 
       <p class="intro">
         Chaque profil évolue grâce aux services réellement réalisés,
@@ -533,34 +607,63 @@
       <div class="grid">
         <article class="tile">
           <div class="icon">🪪</div>
-          <h3>Identité vérifiée</h3>
-          <p>Des niveaux de vérification clairs avant les transactions.</p>
+
+          <h3>
+            Identité vérifiée
+          </h3>
+
+          <p>
+            Des niveaux de vérification clairs avant les transactions.
+          </p>
         </article>
 
         <article class="tile">
           <div class="icon">⭐</div>
-          <h3>Avis réels</h3>
-          <p>Les évaluations sont liées à des services réalisés.</p>
+
+          <h3>
+            Avis réels
+          </h3>
+
+          <p>
+            Les évaluations sont liées à des services réalisés.
+          </p>
         </article>
 
         <article class="tile">
           <div class="icon">🛡️</div>
-          <h3>Paiement protégé</h3>
-          <p>Les règles de paiement et de litige sont visibles.</p>
+
+          <h3>
+            Paiement protégé
+          </h3>
+
+          <p>
+            Les règles de paiement et de litige sont visibles.
+          </p>
         </article>
 
         <article class="tile">
           <div class="icon">🤝</div>
-          <h3>Communauté</h3>
-          <p>Demandez de l’aide ou construisez votre réputation.</p>
+
+          <h3>
+            Communauté
+          </h3>
+
+          <p>
+            Demandez de l’aide ou construisez votre réputation.
+          </p>
         </article>
       </div>
     </div>
   </section>
 
-  <section class="section" id="how">
+  <section
+    class="section"
+    id="how"
+  >
     <div class="wrap">
-      <h2>Une demande. Des personnes fiables.</h2>
+      <h2>
+        Une demande. Des personnes fiables.
+      </h2>
 
       <p class="intro">
         Un parcours simple pour trouver ou proposer de l’aide.
@@ -569,26 +672,50 @@
       <div class="steps">
         <article class="step">
           <div class="num">01</div>
-          <h3>Décrivez</h3>
-          <p>Expliquez votre besoin, votre zone et votre délai.</p>
+
+          <h3>
+            Décrivez
+          </h3>
+
+          <p>
+            Expliquez votre besoin, votre zone et votre délai.
+          </p>
         </article>
 
         <article class="step">
           <div class="num">02</div>
-          <h3>Comparez</h3>
-          <p>Recevez des réponses et consultez les profils.</p>
+
+          <h3>
+            Comparez
+          </h3>
+
+          <p>
+            Recevez des réponses et consultez les profils.
+          </p>
         </article>
 
         <article class="step">
           <div class="num">03</div>
-          <h3>Choisissez</h3>
-          <p>Réservez une personne selon le prix et la confiance.</p>
+
+          <h3>
+            Choisissez
+          </h3>
+
+          <p>
+            Réservez une personne selon le prix et la confiance.
+          </p>
         </article>
 
         <article class="step">
           <div class="num">04</div>
-          <h3>Évaluez</h3>
-          <p>Le service terminé, chacun renforce sa réputation.</p>
+
+          <h3>
+            Évaluez
+          </h3>
+
+          <p>
+            Le service terminé, chacun renforce sa réputation.
+          </p>
         </article>
       </div>
     </div>
@@ -596,34 +723,66 @@
 
   <section class="cta">
     <div>
-      <h2>Votre première action construit la confiance.</h2>
-      <p>Rejoignez les premiers membres de PassTrust à Maisons-Laffitte.</p>
+      <h2>
+        Votre première action construit la confiance.
+      </h2>
+
+      <p>
+        Rejoignez les premiers membres de PassTrust à Maisons-Laffitte.
+      </p>
     </div>
 
-    <button class="btn primary" type="button" onclick="openForm('help')">
+    <button
+      class="btn primary"
+      type="button"
+      onclick="openForm('help')"
+    >
       Rejoindre PassTrust
     </button>
   </section>
 
   <footer>
-    <strong>PassTrust</strong>
-    <span>Prototype — Maisons-Laffitte · 2026</span>
+    <strong>
+      PassTrust
+    </strong>
+
+    <span>
+      Prototype — Maisons-Laffitte · 2026
+    </span>
   </footer>
 
-  <div id="modal" class="modal">
+  <div
+    id="modal"
+    class="modal"
+  >
     <div class="modal-box">
-      <button class="close" type="button" onclick="closeForm()" aria-label="Fermer">
+      <button
+        class="close"
+        type="button"
+        onclick="closeForm()"
+        aria-label="Fermer"
+      >
         ×
       </button>
 
-      <h2 id="form-title">Commencer</h2>
+      <h2 id="form-title">
+        Commencer
+      </h2>
 
-      <p style="color: #657184;">
-        Laissez vos coordonnées : nous vous contacterons pour les premiers tests locaux.
+      <p
+        style="color: #657184;"
+      >
+        Laissez vos coordonnées : nous vous contacterons
+        pour les premiers tests locaux.
       </p>
 
       <form id="lead-form">
-        <input type="hidden" name="mode" id="mode" value="help">
+        <input
+          type="hidden"
+          name="mode"
+          id="mode"
+          value="help"
+        >
 
         <input
           required
@@ -653,43 +812,229 @@
           placeholder="Votre besoin ou le service que vous proposez"
         ></textarea>
 
-        <button class="btn primary" type="submit" style="width: 100%;">
+        <label
+          class="notes-label"
+          for="notes"
+        >
+          Note supplémentaire
+        </label>
+
+        <textarea
+          id="notes"
+          name="notes"
+          placeholder="Précisions, horaires, détails complémentaires..."
+        ></textarea>
+
+        <button
+          class="btn primary"
+          type="submit"
+          style="width: 100%;"
+        >
           Envoyer
         </button>
       </form>
 
-      <p id="form-status" aria-live="polite"></p>
+      <p
+        id="form-status"
+        aria-live="polite"
+      ></p>
     </div>
   </div>
 
-  <!-- Ces deux scripts doivent rester dans cet ordre -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
   <script src="./supabase-client.js"></script>
 
   <script>
     function openForm(mode) {
-      const modal = document.querySelector("#modal");
-      const modeInput = document.querySelector("#mode");
-      const formTitle = document.querySelector("#form-title");
+      const modal =
+        document.querySelector("#modal");
 
-      modeInput.value = mode;
+      const modeInput =
+        document.querySelector("#mode");
 
-      formTitle.textContent = mode === "offer"
-        ? "Je peux aider"
-        : "J’ai besoin d’aide";
+      const formTitle =
+        document.querySelector("#form-title");
 
-      modal.style.display = "flex";
+      const formStatus =
+        document.querySelector("#form-status");
+
+      modeInput.value =
+        mode === "offer"
+          ? "offer"
+          : "help";
+
+      formTitle.textContent =
+        mode === "offer"
+          ? "Je peux aider"
+          : "J’ai besoin d’aide";
+
+      formStatus.textContent = "";
+      formStatus.className = "";
+
+      modal.style.display =
+        "flex";
     }
 
     function closeForm() {
-      document.querySelector("#modal").style.display = "none";
+      const modal =
+        document.querySelector("#modal");
+
+      modal.style.display =
+        "none";
     }
 
-    window.addEventListener("click", function (event) {
-      if (event.target.id === "modal") {
-        closeForm();
+    window.addEventListener(
+      "click",
+      function (event) {
+        if (
+          event.target.id === "modal"
+        ) {
+          closeForm();
+        }
       }
-    });
+    );
+
+    document
+      .querySelector("#lead-form")
+      .addEventListener(
+        "submit",
+        async function (event) {
+          event.preventDefault();
+
+          const form =
+            event.currentTarget;
+
+          const submitButton =
+            form.querySelector(
+              'button[type="submit"]'
+            );
+
+          const formStatus =
+            document.querySelector(
+              "#form-status"
+            );
+
+          const formData =
+            new FormData(form);
+
+          const payload = {
+            mode:
+              String(
+                formData.get("mode") || "help"
+              ).trim(),
+
+            nom:
+              String(
+                formData.get("name") || ""
+              ).trim(),
+
+            courriel:
+              String(
+                formData.get("email") || ""
+              ).trim(),
+
+            besoin:
+              String(
+                formData.get("need") || ""
+              ).trim(),
+
+            ville:
+              String(
+                formData.get("city") ||
+                  "Non précisée"
+              ).trim(),
+
+            statut:
+              "Nouvelle",
+
+            notes:
+              String(
+                formData.get("notes") || ""
+              ).trim()
+          };
+
+          if (
+            !payload.nom ||
+            !payload.courriel ||
+            !payload.besoin
+          ) {
+            formStatus.textContent =
+              "Merci de remplir les champs obligatoires.";
+
+            formStatus.className =
+              "error";
+
+            return;
+          }
+
+          submitButton.disabled =
+            true;
+
+          submitButton.textContent =
+            "Envoi en cours...";
+
+          formStatus.textContent =
+            "";
+
+          formStatus.className =
+            "";
+
+          try {
+            if (
+              typeof supabaseClient ===
+              "undefined"
+            ) {
+              throw new Error(
+                "Le client Supabase est introuvable."
+              );
+            }
+
+            const {
+              error
+            } =
+              await supabaseClient
+                .from("conduit")
+                .insert(payload);
+
+            if (error) {
+              throw error;
+            }
+
+            formStatus.textContent =
+              "Merci, votre demande a bien été envoyée.";
+
+            formStatus.className =
+              "success";
+
+            form.reset();
+
+            document.querySelector(
+              "#mode"
+            ).value =
+              payload.mode;
+          } catch (error) {
+            console.error(
+              "Erreur d'envoi :",
+              error
+            );
+
+            formStatus.textContent =
+              "Impossible d'envoyer la demande. Veuillez réessayer.";
+
+            formStatus.className =
+              "error";
+          } finally {
+            submitButton.disabled =
+              false;
+
+            submitButton.textContent =
+              "Envoyer";
+          }
+        }
+      );
   </script>
 </body>
 </html>

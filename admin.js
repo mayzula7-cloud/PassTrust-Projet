@@ -1,6 +1,6 @@
 /* =========================================================
    PassTrust - admin.js
-   Connexion administrateur avec Supabase
+   Dashboard administrateur Supabase
    ========================================================= */
 
 
@@ -70,7 +70,16 @@ const leadCount =
   document.querySelector("#lead-count");
 
 
-/* ---------- Affichage ---------- */
+/* ---------- Constantes ---------- */
+
+const STATUS_VALUES = [
+  "Nouvelle",
+  "En cours",
+  "Terminée"
+];
+
+
+/* ---------- Affichage général ---------- */
 
 function showLogin() {
   if (authPanel) {
@@ -86,7 +95,11 @@ function showLogin() {
   }
 
   if (leadsList) {
-    leadsList.innerHTML = "";
+    leadsList.innerHTML = `
+      <p class="loading">
+        Connexion nécessaire pour afficher les demandes.
+      </p>
+    `;
   }
 
   if (leadCount) {
@@ -141,7 +154,7 @@ function showSuccess(element, message) {
 }
 
 
-/* ---------- Messages d'erreur ---------- */
+/* ---------- Gestion des erreurs ---------- */
 
 function readableError(error) {
   if (!error) {
@@ -188,27 +201,33 @@ function readableError(error) {
     lowerMessage.includes("permission denied") ||
     lowerMessage.includes(
       "row-level security"
+    ) ||
+    lowerMessage.includes(
+      "violates row-level security"
     )
   ) {
     return "Accès refusé par les règles RLS de Supabase.";
   }
 
   if (
-    lowerMessage.includes(
-      "relation"
-    ) &&
-    lowerMessage.includes(
-      "does not exist"
-    )
+    lowerMessage.includes("relation") &&
+    lowerMessage.includes("does not exist")
   ) {
     return "La table conduit est introuvable.";
+  }
+
+  if (
+    lowerMessage.includes("column") &&
+    lowerMessage.includes("does not exist")
+  ) {
+    return "Une colonne utilisée par le dashboard est introuvable.";
   }
 
   return message;
 }
 
 
-/* ---------- Connexion administrateur ---------- */
+/* ---------- Connexion ---------- */
 
 async function loginAdmin(email, password) {
   const cleanEmail =
@@ -316,6 +335,8 @@ if (loginForm) {
         if (passwordInput) {
           passwordInput.value = "";
         }
+
+        clearMessage(loginMessage);
       } catch (error) {
         console.error(
           "Erreur de connexion :",
@@ -353,6 +374,12 @@ async function checkSession() {
     );
 
     showLogin();
+
+    showError(
+      loginMessage,
+      readableError(error)
+    );
+
     return;
   }
 
@@ -371,7 +398,7 @@ async function checkSession() {
 }
 
 
-/* ---------- Écoute des changements d'authentification ---------- */
+/* ---------- Écoute authentification ---------- */
 
 supabaseClient.auth.onAuthStateChange(
   (event, session) => {
@@ -410,17 +437,22 @@ if (logoutButton) {
         dashboardMessage
       );
 
+      logoutButton.disabled = true;
+
       const {
         error
       } =
         await supabaseClient.auth
           .signOut();
 
+      logoutButton.disabled = false;
+
       if (error) {
         showError(
           dashboardMessage,
           readableError(error)
         );
+
         return;
       }
 
@@ -437,10 +469,11 @@ async function loadLeads() {
     return;
   }
 
-  leadsList.innerHTML =
-    "<p class='loading'>" +
-    "Chargement des demandes..." +
-    "</p>";
+  leadsList.innerHTML = `
+    <p class="loading">
+      Chargement des demandes...
+    </p>
+  `;
 
   clearMessage(
     dashboardMessage
@@ -452,7 +485,17 @@ async function loadLeads() {
   } =
     await supabaseClient
       .from("conduit")
-      .select("*")
+      .select(`
+        identifiant,
+        mode,
+        nom,
+        courriel,
+        besoin,
+        ville,
+        statut,
+        notes,
+        créé_at
+      `)
       .order(
         "créé_at",
         {
@@ -482,7 +525,9 @@ async function loadLeads() {
   }
 
   renderLeads(
-    data || []
+    Array.isArray(data)
+      ? data
+      : []
   );
 }
 
@@ -500,105 +545,301 @@ function renderLeads(leads) {
   }
 
   if (leads.length === 0) {
-    leadsList.innerHTML =
-      "<p class='empty'>" +
-      "Aucune demande pour le moment." +
-      "</p>";
+    leadsList.innerHTML = `
+      <p class="empty">
+        Aucune demande pour le moment.
+      </p>
+    `;
 
     return;
   }
 
   leadsList.innerHTML =
     leads
-      .map((lead) => {
-        const mode =
-          escapeHtml(
-            lead.mode ||
-            "Demande"
-          );
+      .map(
+        (lead) => {
+          const id =
+            escapeHtml(
+              lead.identifiant || ""
+            );
 
-        const name =
-          escapeHtml(
-            lead.nom ||
-            "Nom non renseigné"
-          );
+          const mode =
+            escapeHtml(
+              lead.mode ||
+                "Demande"
+            );
 
-        const email =
-          escapeHtml(
-            lead.courriel ||
-            "Email non renseigné"
-          );
+          const name =
+            escapeHtml(
+              lead.nom ||
+                "Nom non renseigné"
+            );
 
-        const need =
-          escapeHtml(
-            lead.besoin ||
-            "Aucun besoin renseigné"
-          );
+          const email =
+            escapeHtml(
+              lead.courriel ||
+                "Email non renseigné"
+            );
 
-        const city =
-          escapeHtml(
-            lead.ville ||
-            "Ville non renseignée"
-          );
+          const need =
+            escapeHtml(
+              lead.besoin ||
+                "Aucun besoin renseigné"
+            );
 
-        const status =
-          escapeHtml(
-            lead.statut ||
-            "Nouvelle"
-          );
+          const city =
+            escapeHtml(
+              lead.ville ||
+                "Ville non renseignée"
+            );
 
-        const notes =
-          escapeHtml(
-            lead.notes ||
-            "Aucune note"
-          );
+          const status =
+            STATUS_VALUES.includes(
+              lead.statut
+            )
+              ? lead.statut
+              : "Nouvelle";
 
-        const date =
-          formatDate(
-            lead["créé_at"]
-          );
+          const notes =
+            escapeHtml(
+              lead.notes ||
+                "Aucune note"
+            );
 
-        return `
-          <article class="lead-card">
-            <div class="lead-header">
-              <h3>${name}</h3>
+          const date =
+            formatDate(
+              lead["créé_at"]
+            );
 
-              <span class="lead-status">
-                ${status}
-              </span>
-            </div>
+          const selectedNew =
+            status === "Nouvelle"
+              ? "selected"
+              : "";
 
-            <p class="lead-email">
-              ${email}
-            </p>
+          const selectedProgress =
+            status === "En cours"
+              ? "selected"
+              : "";
 
-            <p>
-              <strong>Mode :</strong>
-              ${mode}
-            </p>
+          const selectedDone =
+            status === "Terminée"
+              ? "selected"
+              : "";
 
-            <p>
-              <strong>Besoin :</strong>
-              ${need}
-            </p>
+          return `
+            <article
+              class="lead-card"
+              data-lead-id="${id}"
+            >
+              <div class="lead-header">
+                <h3>${name}</h3>
 
-            <p>
-              <strong>Ville :</strong>
-              ${city}
-            </p>
+                <span class="lead-status">
+                  ${escapeHtml(status)}
+                </span>
+              </div>
 
-            <p class="lead-message">
-              <strong>Notes :</strong>
-              ${notes}
-            </p>
+              <p class="lead-email">
+                ${email}
+              </p>
 
-            <small class="lead-date">
-              ${date}
-            </small>
-          </article>
-        `;
-      })
+              <p class="lead-info">
+                <strong>Mode :</strong>
+                ${mode}
+              </p>
+
+              <p class="lead-info">
+                <strong>Besoin :</strong>
+                ${need}
+              </p>
+
+              <p class="lead-info">
+                <strong>Ville :</strong>
+                ${city}
+              </p>
+
+              <p class="lead-message">
+                <strong>Notes :</strong>
+                ${notes}
+              </p>
+
+              <div class="lead-controls">
+                <label
+                  for="status-${id}"
+                >
+                  Modifier le statut
+                </label>
+
+                <select
+                  id="status-${id}"
+                  class="status-select"
+                  data-lead-id="${id}"
+                >
+                  <option
+                    value="Nouvelle"
+                    ${selectedNew}
+                  >
+                    Nouvelle
+                  </option>
+
+                  <option
+                    value="En cours"
+                    ${selectedProgress}
+                  >
+                    En cours
+                  </option>
+
+                  <option
+                    value="Terminée"
+                    ${selectedDone}
+                  >
+                    Terminée
+                  </option>
+                </select>
+
+                <button
+                  type="button"
+                  class="status-button"
+                  data-action="update-status"
+                  data-lead-id="${id}"
+                >
+                  Enregistrer
+                </button>
+              </div>
+
+              <small class="lead-date">
+                ${date}
+              </small>
+            </article>
+          `;
+        }
+      )
       .join("");
+}
+
+
+/* ---------- Modification du statut ---------- */
+
+async function updateLeadStatus(
+  id,
+  status
+) {
+  if (!id) {
+    showError(
+      dashboardMessage,
+      "Identifiant de demande introuvable."
+    );
+
+    return false;
+  }
+
+  if (!STATUS_VALUES.includes(status)) {
+    showError(
+      dashboardMessage,
+      "Statut sélectionné invalide."
+    );
+
+    return false;
+  }
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("conduit")
+      .update({
+        statut: status
+      })
+      .eq(
+        "identifiant",
+        id
+      );
+
+  if (error) {
+    console.error(
+      "Erreur de modification du statut :",
+      error
+    );
+
+    showError(
+      dashboardMessage,
+      "Impossible de modifier le statut : " +
+        readableError(error)
+    );
+
+    return false;
+  }
+
+  showSuccess(
+    dashboardMessage,
+    "Statut modifié avec succès."
+  );
+
+  return true;
+}
+
+
+/* ---------- Gestion des boutons de statut ---------- */
+
+if (leadsList) {
+  leadsList.addEventListener(
+    "click",
+    async (event) => {
+      const button =
+        event.target.closest(
+          '[data-action="update-status"]'
+        );
+
+      if (!button) {
+        return;
+      }
+
+      const id =
+        button.dataset.leadId;
+
+      const card =
+        button.closest(
+          ".lead-card"
+        );
+
+      const select =
+        card
+          ? card.querySelector(
+              ".status-select"
+            )
+          : null;
+
+      if (!select) {
+        showError(
+          dashboardMessage,
+          "Sélecteur de statut introuvable."
+        );
+
+        return;
+      }
+
+      const originalText =
+        button.textContent;
+
+      button.disabled = true;
+      button.textContent =
+        "Enregistrement...";
+
+      const success =
+        await updateLeadStatus(
+          id,
+          select.value
+        );
+
+      if (success) {
+        await loadLeads();
+      } else {
+        button.disabled = false;
+        button.textContent =
+          originalText;
+      }
+    }
+  );
 }
 
 
@@ -608,21 +849,44 @@ if (refreshButton) {
   refreshButton.addEventListener(
     "click",
     async () => {
+      refreshButton.disabled = true;
+      refreshButton.textContent =
+        "Actualisation...";
+
       await loadLeads();
+
+      refreshButton.disabled = false;
+      refreshButton.textContent =
+        "Actualiser";
     }
   );
 }
 
 
-/* ---------- Protection contre l'injection HTML ---------- */
+/* ---------- Protection HTML ---------- */
 
 function escapeHtml(value) {
   return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
 
 
@@ -641,7 +905,7 @@ function formatDate(value) {
       date.getTime()
     )
   ) {
-    return String(value);
+    return escapeHtml(value);
   }
 
   return date.toLocaleString(

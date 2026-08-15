@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
+  >
 
   <title>PassTrust — Dashboard admin</title>
 
@@ -163,16 +164,6 @@
       color: var(--text);
     }
 
-    .danger-button {
-      background: var(--danger);
-      color: #ffffff;
-    }
-
-    .danger-button:hover {
-      background: #df4f61;
-      color: #ffffff;
-    }
-
     .form-actions {
       display: flex;
       justify-content: flex-end;
@@ -234,7 +225,7 @@
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       margin-bottom: 22px;
     }
@@ -253,8 +244,37 @@
 
     .stat-value {
       margin-top: 9px;
+      color: var(--text);
       font-size: 28px;
       font-weight: bold;
+    }
+
+    .stat-card.total {
+      border-color: #3b82f6;
+    }
+
+    .stat-card.new {
+      border-color: var(--warning);
+    }
+
+    .stat-card.progress {
+      border-color: var(--primary);
+    }
+
+    .stat-card.done {
+      border-color: var(--success);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 220px auto;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .filters input,
+    .filters select {
+      min-width: 0;
     }
 
     .leads-panel {
@@ -322,9 +342,10 @@
       overflow-wrap: anywhere;
     }
 
-    .lead-date {
+    .lead-date,
+    .lead-updated {
       display: block;
-      margin-top: 14px;
+      margin-top: 8px;
       color: #8190a8;
       font-size: 12px;
     }
@@ -369,6 +390,16 @@
       text-align: center;
     }
 
+    @media (max-width: 820px) {
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 720px) {
       .container {
         padding: 22px 14px 45px;
@@ -391,10 +422,6 @@
         flex: 1;
       }
 
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
       .auth-panel,
       .leads-panel {
         padding: 20px;
@@ -412,6 +439,12 @@
       .status-select,
       .status-button {
         width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -452,7 +485,7 @@
             placeholder="sosabay18@gmail.com"
             autocomplete="email"
             required
-          />
+          >
         </div>
 
         <div class="form-group">
@@ -467,7 +500,7 @@
             placeholder="Ton mot de passe"
             autocomplete="current-password"
             required
-          />
+          >
         </div>
 
         <div class="form-actions">
@@ -517,43 +550,100 @@
         </div>
       </div>
 
-      <div class="stats">
-        <article class="stat-card">
+      <section class="stats">
+        <article class="stat-card total">
           <div class="stat-label">
             Demandes totales
           </div>
 
           <div
-            id="lead-count"
+            id="stat-total"
             class="stat-value"
           >
             0
           </div>
         </article>
 
-        <article class="stat-card">
+        <article class="stat-card new">
           <div class="stat-label">
-            Statut
+            Nouvelles
           </div>
 
-          <div class="stat-value">
-            Actif
+          <div
+            id="stat-new"
+            class="stat-value"
+          >
+            0
           </div>
         </article>
 
-        <article class="stat-card">
+        <article class="stat-card progress">
           <div class="stat-label">
-            Plateforme
+            En cours
           </div>
 
-          <div class="stat-value">
-            PassTrust
+          <div
+            id="stat-progress"
+            class="stat-value"
+          >
+            0
           </div>
         </article>
-      </div>
+
+        <article class="stat-card done">
+          <div class="stat-label">
+            Terminées
+          </div>
+
+          <div
+            id="stat-done"
+            class="stat-value"
+          >
+            0
+          </div>
+        </article>
+      </section>
+
+      <section class="filters">
+        <input
+          id="lead-search"
+          type="search"
+          placeholder="Rechercher par nom ou email..."
+          autocomplete="off"
+        >
+
+        <select id="status-filter">
+          <option value="">
+            Tous les statuts
+          </option>
+
+          <option value="Nouvelle">
+            Nouvelle
+          </option>
+
+          <option value="En cours">
+            En cours
+          </option>
+
+          <option value="Terminée">
+            Terminée
+          </option>
+        </select>
+
+        <button
+          id="reset-filters"
+          class="secondary-button"
+          type="button"
+        >
+          Réinitialiser
+        </button>
+      </section>
 
       <section class="leads-panel">
-        <h2>Demandes reçues</h2>
+        <h2>
+          Demandes reçues
+          (<span id="lead-count">0</span>)
+        </h2>
 
         <p
           id="dashboard-message"
@@ -578,6 +668,6 @@
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   ></script>
 
-  <script src="./admin.js"></script>
+  <script src="./admin.js?v=20260815-1430"></script>
 </body>
 </html>

@@ -1025,6 +1025,3 @@ checkSession()
       error
     );
   });
-      error
-    );
-  });

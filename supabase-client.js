@@ -1,37 +1,50 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const SUPABASE_URL = "https://aohplqbwwbxxpkpmapxk.supabase.co/rest/v1/";
-const SUPABASE_ANON_KEY = "sb_publishable_4n64k5NM0t12Nat7aqqkzw_4FraK6IH";
+const SUPABASE_KEY = "sb_publishable_4n64k5NM0t12Nat7aqqkzw_4FraK6IH";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
 const form = document.querySelector("#lead-form");
 const status = document.querySelector("#form-status");
 const modeInput = document.querySelector("#mode");
 
 if (form) {
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-    const data = Object.fromEntries(new FormData(form));
+    const formData = new FormData(form);
+
+    const payload = {
+      mode: String(formData.get("mode") || "help"),
+      name: String(formData.get("name") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
+      city: String(formData.get("city") || "Maisons-Laffitte").trim(),
+      need: String(formData.get("need") || "").trim()
+    };
+
+    status.className = "";
     status.textContent = "Envoi en cours...";
 
-    const { error } = await supabase.from("leads").insert({
-      mode: data.mode,
-      name: data.name,
-      email: data.email,
-      city: data.city || "Maisons-Laffitte",
-      need: data.need
-    });
+    const { error } = await supabaseClient
+      .from("leads")
+      .insert(payload);
 
     if (error) {
       console.error(error);
-      status.textContent = "Erreur lors de l’envoi.";
+      status.className = "error";
+      status.textContent = `Erreur : ${error.message}`;
       return;
     }
 
     form.reset();
-    modeInput.value = "help";
-    status.textContent = "Merci, votre demande a été envoyée.";
+
+    if (modeInput) {
+      modeInput.value = "help";
+    }
+
+    status.className = "success";
+    status.textContent = "Merci, votre demande a bien été envoyée.";
   });
 }

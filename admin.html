@@ -11,17 +11,16 @@
 
   <style>
     :root {
-      --background: #0b1120;
-      --panel: #111a2d;
-      --panel-light: #17233a;
-      --border: #263653;
-      --text: #f4f7fb;
-      --muted: #aeb9ca;
-      --primary: #20c5b3;
-      --primary-dark: #159b8e;
-      --danger: #ff6b7a;
-      --success: #55d68b;
-      --warning: #f3c969;
+      --bg: #091121;
+      --panel: #111b30;
+      --panel-2: #0e1729;
+      --border: #263756;
+      --text: #f5f7fb;
+      --muted: #aebbd0;
+      --primary: #22c7b7;
+      --primary-hover: #18a99c;
+      --danger: #ff6878;
+      --success: #58d993;
     }
 
     * {
@@ -31,77 +30,78 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: var(--background);
+      background: var(--bg);
       color: var(--text);
       font-family: Arial, Helvetica, sans-serif;
     }
 
-    .page {
-      width: 100%;
-      max-width: 1180px;
+    .container {
+      width: min(1180px, 100%);
       margin: 0 auto;
-      padding: 32px 20px 60px;
+      padding: 30px 20px 60px;
     }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 32px;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 28px;
-      line-height: 1.2;
-    }
-
-    header p {
-      margin: 8px 0 0;
-      color: var(--muted);
-    }
-
-    .brand {
+    .site-header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
+      margin-bottom: 34px;
     }
 
-    .brand-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+    .logo {
+      width: 38px;
+      height: 38px;
       display: grid;
       place-items: center;
+      border-radius: 10px;
       background: var(--primary);
       color: #06151a;
-      font-size: 22px;
+      font-size: 23px;
       font-weight: bold;
     }
 
+    .site-header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .site-header p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
     .panel {
-      background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.18);
+      background: var(--panel);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
     }
 
     .auth-panel {
-      max-width: 520px;
-      margin: 50px auto;
+      width: min(520px, 100%);
+      margin: 40px auto;
+      padding: 26px;
     }
 
-    .panel h2 {
-      margin: 0 0 10px;
-      font-size: 24px;
+    .auth-panel h2,
+    .dashboard-panel h2,
+    .leads-panel h2 {
+      margin: 0;
     }
 
-    .panel-description {
-      margin: 0 0 24px;
+    .auth-panel h2 {
+      font-size: 23px;
+    }
+
+    .description {
+      margin: 10px 0 24px;
       color: var(--muted);
       line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
     }
 
     label {
@@ -114,79 +114,70 @@
 
     input {
       width: 100%;
+      padding: 14px 15px;
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 14px 15px;
-      background: #0e1728;
+      outline: none;
+      background: var(--panel-2);
       color: var(--text);
       font-size: 16px;
-      outline: none;
     }
 
     input:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(32, 197, 179, 0.15);
+      box-shadow: 0 0 0 3px rgba(34, 199, 183, 0.15);
     }
 
     button {
+      padding: 13px 18px;
       border: 0;
       border-radius: 10px;
-      padding: 13px 18px;
       background: var(--primary);
       color: #06151a;
       cursor: pointer;
       font-size: 15px;
       font-weight: bold;
-      transition: background 0.2s ease, transform 0.2s ease;
     }
 
     button:hover {
-      background: var(--primary-dark);
-      color: white;
-      transform: translateY(-1px);
+      background: var(--primary-hover);
+      color: #ffffff;
     }
 
     button:disabled {
       cursor: not-allowed;
       opacity: 0.6;
-      transform: none;
     }
 
     .secondary-button {
-      background: var(--panel-light);
       border: 1px solid var(--border);
+      background: var(--panel-2);
       color: var(--text);
     }
 
     .secondary-button:hover {
-      background: #223250;
+      background: #1a2944;
       color: var(--text);
-    }
-
-    .form-group {
-      margin-bottom: 18px;
     }
 
     .form-actions {
       display: flex;
       justify-content: flex-end;
-      margin-top: 20px;
+      margin-top: 22px;
     }
 
     .message {
-      min-height: 24px;
+      min-height: 22px;
       margin: 18px 0 0;
-      line-height: 1.45;
       font-size: 14px;
+      line-height: 1.5;
     }
 
-    .message.error,
-    .error {
+    .message.error {
       color: var(--danger);
     }
 
-    .message.success,
-    .success {
+    .message.success {
       color: var(--success);
     }
 
@@ -194,12 +185,32 @@
       display: none !important;
     }
 
+    .dashboard-panel {
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
     .dashboard-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 20px;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
+    }
+
+    .dashboard-top h2 {
+      font-size: 24px;
+    }
+
+    .account {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .account strong {
+      color: var(--text);
     }
 
     .dashboard-actions {
@@ -208,24 +219,15 @@
       flex-wrap: wrap;
     }
 
-    .account-info {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .account-info strong {
-      color: var(--text);
-    }
-
     .stats {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
 
     .stat-card {
-      padding: 22px;
+      padding: 20px;
       border: 1px solid var(--border);
       border-radius: 14px;
       background: var(--panel);
@@ -237,21 +239,21 @@
     }
 
     .stat-value {
-      margin-top: 8px;
-      font-size: 30px;
+      margin-top: 9px;
+      font-size: 28px;
       font-weight: bold;
     }
 
     .leads-panel {
-      background: var(--panel);
+      padding: 24px;
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 24px;
+      background: var(--panel);
     }
 
     .leads-panel h2 {
-      margin: 0 0 18px;
-      font-size: 22px;
+      margin-bottom: 16px;
+      font-size: 21px;
     }
 
     #leads-list {
@@ -263,7 +265,7 @@
       padding: 18px;
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: #0e1728;
+      background: var(--panel-2);
     }
 
     .lead-header {
@@ -279,10 +281,9 @@
     }
 
     .lead-status {
-      display: inline-block;
       padding: 5px 9px;
       border-radius: 999px;
-      background: rgba(32, 197, 179, 0.14);
+      background: rgba(34, 199, 183, 0.14);
       color: var(--primary);
       font-size: 12px;
       white-space: nowrap;
@@ -301,52 +302,54 @@
     }
 
     .lead-date {
-      color: #7e8ca3;
+      color: #8190a8;
+      font-size: 12px;
     }
 
     .loading,
     .empty {
       margin: 0;
-      padding: 25px 10px;
+      padding: 24px 10px;
       color: var(--muted);
       text-align: center;
     }
 
     footer {
       margin-top: 40px;
-      color: #77849a;
+      color: #7c8ba3;
       font-size: 13px;
       text-align: center;
     }
 
     @media (max-width: 720px) {
-      .page {
-        padding: 22px 14px 40px;
+      .container {
+        padding: 22px 14px 45px;
       }
 
-      header,
+      .site-header h1 {
+        font-size: 22px;
+      }
+
       .dashboard-top {
         align-items: flex-start;
         flex-direction: column;
+      }
+
+      .dashboard-actions {
+        width: 100%;
+      }
+
+      .dashboard-actions button {
+        flex: 1;
       }
 
       .stats {
         grid-template-columns: 1fr;
       }
 
-      .panel,
+      .auth-panel,
       .leads-panel {
         padding: 20px;
-      }
-
-      .form-actions,
-      .dashboard-actions {
-        width: 100%;
-      }
-
-      .form-actions button,
-      .dashboard-actions button {
-        width: 100%;
       }
 
       .lead-header {
@@ -357,43 +360,62 @@
 </head>
 
 <body>
-  <main class="page">
-    <header>
-      <div class="brand">
-        <div class="brand-icon">+</div>
+  <main class="container">
+    <header class="site-header">
+      <div class="logo">+</div>
 
-        <div>
-          <h1>PassTrust — Dashboard admin</h1>
-          <p>Gestion des demandes et des utilisateurs</p>
-        </div>
+      <div>
+        <h1>PassTrust — Dashboard admin</h1>
+        <p>Gestion des demandes et des utilisateurs</p>
       </div>
     </header>
 
-    <!-- Connexion -->
-    <section id="auth-panel" class="panel auth-panel">
+    <!-- Connexion administrateur -->
+    <section
+      id="auth-panel"
+      class="panel auth-panel"
+    >
       <h2>Connexion admin</h2>
 
-      <p class="panel-description">
-        Saisis ton adresse email pour recevoir un lien sécurisé.
+      <p class="description">
+        Connecte-toi avec l’adresse et le mot de passe
+        d’un utilisateur créé dans Supabase.
       </p>
 
       <form id="login-form">
         <div class="form-group">
-          <label for="current-email">Adresse email</label>
+          <label for="current-email">
+            Adresse email
+          </label>
 
           <input
             id="current-email"
             name="email"
             type="email"
-            placeholder="exemple@email.com"
+            placeholder="sosabay18@gmail.com"
             autocomplete="email"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="admin-password">
+            Mot de passe
+          </label>
+
+          <input
+            id="admin-password"
+            name="password"
+            type="password"
+            placeholder="Ton mot de passe"
+            autocomplete="current-password"
             required
           />
         </div>
 
         <div class="form-actions">
           <button type="submit">
-            Recevoir le lien
+            Se connecter
           </button>
         </div>
       </form>
@@ -405,13 +427,16 @@
       ></p>
     </section>
 
-    <!-- Dashboard -->
-    <section id="dashboard-panel" class="hidden">
+    <!-- Dashboard après connexion -->
+    <section
+      id="dashboard-panel"
+      class="dashboard-panel hidden"
+    >
       <div class="dashboard-top">
         <div>
           <h2>Tableau de bord</h2>
 
-          <p class="account-info">
+          <p class="account">
             Connecté avec :
             <strong id="current-email-display"></strong>
           </p>
@@ -420,16 +445,16 @@
         <div class="dashboard-actions">
           <button
             id="refresh-button"
-            type="button"
             class="secondary-button"
+            type="button"
           >
             Actualiser
           </button>
 
           <button
             id="logout-button"
-            type="button"
             class="secondary-button"
+            type="button"
           >
             Déconnexion
           </button>
@@ -437,23 +462,41 @@
       </div>
 
       <div class="stats">
-        <div class="stat-card">
-          <div class="stat-label">Demandes totales</div>
-          <div id="lead-count" class="stat-value">0</div>
-        </div>
+        <article class="stat-card">
+          <div class="stat-label">
+            Demandes totales
+          </div>
 
-        <div class="stat-card">
-          <div class="stat-label">Statut</div>
-          <div class="stat-value">Actif</div>
-        </div>
+          <div
+            id="lead-count"
+            class="stat-value"
+          >
+            0
+          </div>
+        </article>
 
-        <div class="stat-card">
-          <div class="stat-label">Plateforme</div>
-          <div class="stat-value">PassTrust</div>
-        </div>
+        <article class="stat-card">
+          <div class="stat-label">
+            Statut
+          </div>
+
+          <div class="stat-value">
+            Actif
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-label">
+            Plateforme
+          </div>
+
+          <div class="stat-value">
+            PassTrust
+          </div>
+        </article>
       </div>
 
-      <div class="leads-panel">
+      <section class="leads-panel">
         <h2>Demandes reçues</h2>
 
         <p
@@ -464,10 +507,10 @@
 
         <div id="leads-list">
           <p class="loading">
-            Chargement des demandes...
+            Connexion nécessaire pour afficher les demandes.
           </p>
         </div>
-      </div>
+      </section>
     </section>
 
     <footer>

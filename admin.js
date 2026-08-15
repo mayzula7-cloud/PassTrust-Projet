@@ -954,7 +954,39 @@ function formatDate(value) {
   );
 }
 
+/* ---------- Actualisation en temps réel ---------- */
+
+function subscribeToLeadsChanges() {
+  supabaseClient
+    .channel("conduit-dashboard")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "conduit"
+      },
+      () => {
+        loadLeads();
+      }
+    )
+    .subscribe((status) => {
+      console.log(
+        "Realtime conduit :",
+        status
+      );
+    });
+}
 
 /* ---------- Démarrage ---------- */
 
-checkSession();
+checkSession()
+  .then(() => {
+    subscribeToLeadsChanges();
+  })
+  .catch((error) => {
+    console.error(
+      "Erreur de démarrage :",
+      error
+    );
+  });

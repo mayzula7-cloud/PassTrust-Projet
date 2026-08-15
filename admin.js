@@ -1,145 +1,44 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
 const SUPABASE_URL = "https://aohplqbwwbxxpkpmapxk.supabase.co/rest/v1/";
 const SUPABASE_KEY = "sb_publishable_4n64k5NM0t12Nat7aqqkzw_4FraK6IH";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
-const authBox = document.querySelector("#authBox");
-const leadsBox = document.querySelector("#leads");
-const countBox = document.querySelector("#count");
+const authPanel = document.querySelector("#auth-panel");
+const dashboardPanel = document.querySelector("#dashboard-panel");
+const loginForm = document.querySelector("#login-form");
+const loginMessage = document.querySelector("#login-message");
+const currentEmail = document.querySelector("#current-email");
+const logoutButton = document.querySelector("#logout-button");
+const refreshButton = document.querySelector("#refresh-button");
+const dashboardMessage = document.querySelector("#dashboard-message");
+const leadsList = document.querySelector("#leads-list");
+const leadCount = document.querySelector("#lead-count");
 
-function showError(message) {
-  authBox.innerHTML = `
-    <h2>Erreur de configuration</h2>
-    <p class="muted">${message}</p>
-  `;
+function showLogin() {
+  authPanel.classList.remove("hidden");
+  dashboardPanel.classList.add("hidden");
+  currentEmail.textContent = "";
+  leadsList.innerHTML = "";
+  leadCount.textContent = "0";
 }
 
-async function render() {
-  authBox.innerHTML = `
-    <h2>Connexion admin</h2>
-    <form id="loginForm">
-      <input type="email" name="email" placeholder="Email admin" required />
-      <button type="submit">Recevoir le lien</button>
-    </form>
-    <p id="loginStatus" class="muted"></p>
-  `;
-
-  const { data, error } = await supabase.auth.getSession();
-
-  if (error) {
-    showError(error.message);
-    return;
-  }
-
-  const session = data.session;
-
-  if (!session) {
-    leadsBox.innerHTML = "";
-    countBox.textContent = "Non connecté";
-    setupLogin();
-    return;
-  }
-
-  authBox.innerHTML = `
-    <div class="row">
-      <div>Connecté : <strong>${session.user.email}</strong></div>
-      <button id="logoutBtn">Déconnexion</button>
-    </div>
-  `;
-
-  document.querySelector("#logoutBtn").addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    window.location.reload();
-  });
-
-  await loadLeads();
+function showDashboard(email) {
+  authPanel.classList.add("hidden");
+  dashboardPanel.classList.remove("hidden");
+  currentEmail.textContent = email;
 }
 
-function setupLogin() {
-  const form = document.querySelector("#loginForm");
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const email = new FormData(form).get("email");
-    const status = document.querySelector("#loginStatus");
-
-    status.textContent = "Envoi du lien...";
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.href
-      }
-    });
-
-    status.textContent = error
-      ? `Erreur : ${error.message}`
-      : "Lien envoyé. Vérifie ta boîte email.";
-  });
+function showError(element, message) {
+  element.className = "error";
+  element.textContent = message;
 }
 
-async function loadLeads() {
-  const { data, error } = await supabase
-    .from("leads")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    leadsBox.innerHTML = `<p class="muted">Erreur : ${error.message}</p>`;
-    return;
-  }
-
-  countBox.textContent = `${data.length} demande(s)`;
-
-  if (!data.length) {
-    leadsBox.innerHTML = `<p class="muted">Aucune demande pour le moment.</p>`;
-    return;
-  }
-
-  leadsBox.innerHTML = data.map((lead) => `
-    <div class="card">
-      <div class="row">
-        <strong>${escapeHtml(lead.name)}</strong>
-        <span class="muted">${escapeHtml(lead.email)}</span>
-        <span class="muted">${escapeHtml(lead.city || "")}</span>
-        <select data-id="${lead.id}" class="status">
-          ${statusOption("new", lead.status)}
-          ${statusOption("contacted", lead.status)}
-          ${statusOption("qualified", lead.status)}
-          ${statusOption("rejected", lead.status)}
-          ${statusOption("converted", lead.status)}
-        </select>
-      </div>
-      <p>${escapeHtml(lead.need)}</p>
-      <small class="muted">
-        ${new Date(lead.created_at).toLocaleString("fr-FR")}
-      </small>
-    </div>
-  `).join("");
-
-  document.querySelectorAll(".status").forEach((select) => {
-    select.addEventListener("change", async () => {
-      const { error } = await supabase
-        .from("leads")
-        .update({ status: select.value })
-        .eq("id", select.dataset.id);
-
-      if (error) {
-        alert(error.message);
-      }
-    });
-  });
-}
-
-function statusOption(value, current) {
-  return `
-    <option value="${value}" ${value === current ? "selected" : ""}>
-      ${value}
-    </option>
-  `;
+function showSuccess(element, message) {
+  element.className = "success";
+  element.textContent = message;
 }
 
 function escapeHtml(value) {
@@ -151,8 +50,170 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-supabase.auth.onAuthStateChange(() => {
-  render();
+function statusOptions(currentStatus) {
+  const statuses = [
+    ["new", "Nouvelle"],
+    ["contacted", "Contactée"],
+    ["qualified", "Qualifiée"],
+    ["rejected", "Refusée"],
+    ["converted", "Convertie"]
+  ];
+
+  return statuses.map(([value, label]) => `
+    <option value="${value}" ${currentStatus === value ? "selected" : ""}>
+      ${label}
+    </option>
+  `).join("");
+}
+
+async function loadLeads() {
+  dashboardMessage.className = "muted";
+  dashboardMessage.textContent = "Chargement des demandes...";
+  leadsList.innerHTML = "";
+
+  const { data, error } = await supabaseClient
+    .from("leads")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    showError(dashboardMessage, `Erreur de lecture des demandes :\n${error.message}`);
+    return;
+  }
+
+  const leads = data || [];
+  leadCount.textContent = String(leads.length);
+
+  if (leads.length === 0) {
+    dashboardMessage.className = "muted";
+    dashboardMessage.textContent = "Aucune demande pour le moment.";
+    return;
+  }
+
+  dashboardMessage.textContent = "";
+
+  leadsList.innerHTML = leads.map((lead) => `
+    <article class="lead-card">
+      <div class="row">
+        <strong>${escapeHtml(lead.name)}</strong>
+        <span class="muted">${escapeHtml(lead.email)}</span>
+        <span class="muted">${escapeHtml(lead.city)}</span>
+        <span class="badge">
+          ${lead.mode === "offer" ? "Peut aider" : "Besoin d'aide"}
+        </span>
+
+        <select
+          class="status-select"
+          data-lead-id="${escapeHtml(lead.id)}"
+          aria-label="Statut de la demande"
+        >
+          ${statusOptions(lead.status)}
+        </select>
+      </div>
+
+      <p>${escapeHtml(lead.need)}</p>
+
+      <small class="muted">
+        ${new Date(lead.created_at).toLocaleString("fr-FR")}
+      </small>
+    </article>
+  `).join("");
+
+  document.querySelectorAll(".status-select").forEach((select) => {
+    select.addEventListener("change", async () => {
+      const leadId = select.dataset.leadId;
+      const newStatus = select.value;
+
+      const { error: updateError } = await supabaseClient
+        .from("leads")
+        .update({ status: newStatus })
+        .eq("id", leadId);
+
+      if (updateError) {
+        alert(`Erreur de mise à jour : ${updateError.message}`);
+        await loadLeads();
+      }
+    });
+  });
+}
+
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const email = document.querySelector("#login-email").value.trim();
+
+  loginMessage.className = "muted";
+  loginMessage.textContent = "Envoi du lien de connexion...";
+
+  const { error } = await supabaseClient.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: window.location.href,
+      shouldCreateUser: false
+    }
+  });
+
+  if (error) {
+    showError(loginMessage, error.message);
+    return;
+  }
+
+  showSuccess(
+    loginMessage,
+    "Lien envoyé. Vérifie ta boîte email puis clique sur le lien."
+  );
 });
 
-render();
+logoutButton.addEventListener("click", async () => {
+  await supabaseClient.auth.signOut();
+  showLogin();
+});
+
+refreshButton.addEventListener("click", loadLeads);
+
+async function initialize() {
+  if (!window.supabase) {
+    showError(
+      loginMessage,
+      "Le SDK Supabase ne s'est pas chargé. Vérifie la connexion internet."
+    );
+    return;
+  }
+
+  if (
+    SUPABASE_URL.includes("COLLE_") ||
+    SUPABASE_KEY.includes("COLLE_")
+  ) {
+    showError(
+      loginMessage,
+      "Remplace d'abord SUPABASE_URL et SUPABASE_KEY par tes vraies valeurs."
+    );
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    showError(loginMessage, error.message);
+    return;
+  }
+
+  if (!data.session) {
+    showLogin();
+    return;
+  }
+
+  showDashboard(data.session.user.email);
+  await loadLeads();
+}
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    showDashboard(session.user.email);
+    loadLeads();
+  } else if (event === "SIGNED_OUT") {
+    showLogin();
+  }
+});
+
+initialize();
